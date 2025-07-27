@@ -54,17 +54,17 @@
 
 ### 主界面
 
-![主界面](/Users/wangxt/myspace/smart-tab-manager/doc-images/home.png)
+![主界面](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/home.png)
 
-![命令面板](/Users/wangxt/myspace/smart-tab-manager/doc-images/home-2.png)
+![命令面板](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/home-2.png)
 
 ### 配置页面
 
-![工作空间](/Users/wangxt/myspace/smart-tab-manager/doc-images/config-custom.png)
+![工作空间](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/config-custom.png)
 
-![恢复界面](/Users/wangxt/myspace/smart-tab-manager/doc-images/config-sync.png)
+![恢复界面](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/config-sync.png)
 
-![恢复界面](/Users/wangxt/myspace/smart-tab-manager/doc-images/config-snapshot.png))
+![恢复界面](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/config-snapshot.png))
 
 </div>
 
