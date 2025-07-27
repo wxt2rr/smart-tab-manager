@@ -1,0 +1,1476 @@
+<template>
+  <div class="popup-container" :class="{ 'dark': isDarkMode }">
+    <!-- 标题栏 -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">⚡</span>
+          <span class="logo-text">Smart Tab</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button @click="openSettings" class="icon-button settings-btn" title="设置">
+          <Cog6ToothIcon class="w-5 h-5" />
+        </button>
+      </div>
+    </header>
+
+    <!-- 搜索栏 -->
+    <div class="search-section">
+      <div class="search-container" @click="openCommandPalette">
+        <MagnifyingGlassIcon class="search-icon w-4 h-4" />
+        <input 
+          type="text" 
+          placeholder="搜索或输入命令..."
+          class="search-input"
+          readonly
+        />
+        <kbd class="search-shortcut">⌘K</kbd>
+      </div>
+    </div>
+
+    <!-- 概览卡片 -->
+    <div class="overview-section">
+      <div class="section-title">
+        <ChartBarIcon class="w-4 h-4" />
+        <span>概览</span>
+      </div>
+      <div class="overview-card">
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.totalTabs }}</span>
+          <span class="stat-label">个标签页</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value duplicate">{{ stats.duplicateTabs }}</span>
+          <span class="stat-label">重复</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">⚡</span>
+          <span class="stat-label">{{ formatTime(stats.lastSyncTime) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 标签页管理 -->
+    <div class="tabs-section">
+      <div class="section-title">
+        <DocumentDuplicateIcon class="w-4 h-4" />
+        <span>标签页</span>
+        <span class="section-count">{{ currentTabs.length }}</span>
+        <button 
+          class="tab-sort-btn"
+          @click="toggleTabSort"
+          :title="`当前排序: ${tabSortLabels[tabSortMode]}`"
+        >
+          <span class="sort-icon">{{ tabSortMode === 'time' ? '🕐' : (tabSortMode === 'domain' ? '🌐' : '📂') }}</span>
+        </button>
+      </div>
+      
+      <!-- 标签页过滤器 -->
+      <div class="tab-filters" v-if="currentTabs.length > 10">
+        <button 
+          v-for="filter in tabFilters" 
+          :key="filter.key"
+          class="filter-btn"
+          :class="{ 'active': activeTabFilter === filter.key }"
+          @click="setTabFilter(filter.key)"
+        >
+          <span class="filter-icon">{{ filter.icon }}</span>
+          <span class="filter-label">{{ filter.label }}</span>
+          <span class="filter-count">{{ getFilteredTabsCount(filter.key) }}</span>
+        </button>
+      </div>
+      
+      <div class="tabs-list-container">
+        <div class="tabs-list">
+          <!-- 按分组显示标签页 -->
+          <template v-if="tabSortMode === 'group'">
+            <div v-for="group in groupedTabs" :key="group.name" class="tab-group">
+              <div class="tab-group-header">
+                <span class="group-name">{{ group.name }}</span>
+                <span class="group-count">{{ group.tabs.length }}</span>
+              </div>
+              <div class="tab-group-items">
+                <div 
+                  v-for="tab in group.tabs" 
+                  :key="`tab-${tab.id}-${tab.url}`"
+                  class="tab-item"
+                  :class="{
+                    'active': tab.active,
+                    'duplicate': isDuplicate(tab),
+                    'pinned': tab.pinned
+                  }"
+                  @click="switchToTab(tab)"
+                >
+                  <img 
+                    :src="getFaviconUrl(tab.favicon)" 
+                    :alt="tab.title"
+                    class="tab-favicon"
+                    @error="handleFaviconError"
+                  />
+                  <div class="tab-info">
+                    <span class="tab-title">{{ truncateText(tab.title, 25) }}</span>
+                    <span class="tab-url">{{ getDomain(tab.url) }}</span>
+                  </div>
+                  <div class="tab-indicators">
+                    <span v-if="tab.pinned" class="tab-indicator pinned" title="已固定">📌</span>
+                    <span v-if="tab.active" class="tab-indicator active" title="当前活跃">●</span>
+                    <span v-if="isDuplicate(tab)" class="tab-indicator duplicate" title="重复页面">⚠️</span>
+                  </div>
+                  <div class="tab-actions">
+                    <button 
+                      v-if="isDuplicate(tab)" 
+                      class="tab-action duplicate"
+                      @click.stop="handleDuplicate(tab)"
+                      title="处理重复页面"
+                    >
+                      <ExclamationTriangleIcon class="w-3 h-3" />
+                    </button>
+                    <button 
+                      class="tab-action workspace"
+                      @click.stop="addToWorkspace(tab)"
+                      title="添加到分组"
+                    >
+                      <PlusIcon class="w-3 h-3" />
+                    </button>
+                    <button 
+                      class="tab-action close"
+                      @click.stop="closeTab(tab)"
+                      title="关闭标签页"
+                    >
+                      <span class="close-icon">×</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+          
+          <!-- 常规列表显示 -->
+          <template v-else>
+            <div 
+              v-for="tab in sortedAndFilteredTabs" 
+              :key="`tab-${tab.id}-${tab.url}`"
+              class="tab-item"
+              :class="{
+                'active': tab.active,
+                'duplicate': isDuplicate(tab),
+                'pinned': tab.pinned
+              }"
+              @click="switchToTab(tab)"
+            >
+              <img 
+                :src="getFaviconUrl(tab.favicon)" 
+                :alt="tab.title"
+                class="tab-favicon"
+                @error="handleFaviconError"
+                @load="handleFaviconLoad"
+              />
+              <div class="tab-info">
+                <span class="tab-title">{{ truncateText(tab.title, 25) }}</span>
+                <span class="tab-url">{{ getDomain(tab.url) }}</span>
+              </div>
+              <div class="tab-indicators">
+                <span v-if="tab.pinned" class="tab-indicator pinned" title="已固定">📌</span>
+                <span v-if="tab.active" class="tab-indicator active" title="当前活跃">●</span>
+                <span v-if="isDuplicate(tab)" class="tab-indicator duplicate" title="重复页面">⚠️</span>
+              </div>
+              <div class="tab-actions">
+                <button 
+                  v-if="isDuplicate(tab)" 
+                  class="tab-action duplicate"
+                  @click.stop="handleDuplicate(tab)"
+                  title="处理重复页面"
+                >
+                  <ExclamationTriangleIcon class="w-3 h-3" />
+                </button>
+                <button 
+                  class="tab-action workspace"
+                  @click.stop="addToWorkspace(tab)"
+                  title="添加到分组"
+                >
+                  <PlusIcon class="w-3 h-3" />
+                </button>
+                <button 
+                  class="tab-action close"
+                  @click.stop="closeTab(tab)"
+                  title="关闭标签页"
+                >
+                  <span class="close-icon">×</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+        
+        <div v-if="sortedAndFilteredTabs.length === 0 && currentTabs.length > 0" class="empty-state">
+          <DocumentDuplicateIcon class="w-8 h-8 opacity-50" />
+          <span>没有符合条件的标签页</span>
+        </div>
+        
+        <div v-if="currentTabs.length === 0" class="empty-state">
+          <DocumentDuplicateIcon class="w-8 h-8 opacity-50" />
+          <span>暂无标签页</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分组 -->
+    <div class="workspaces-section">
+      <div class="section-title">
+        <FolderIcon class="w-4 h-4" />
+        <span>分组</span>
+      </div>
+      <div class="workspaces-list">
+        <div 
+          v-for="workspace in workspaces.slice(0, 4)" 
+          :key="workspace.id"
+          class="workspace-item"
+          :class="{ 'active': workspace.id === activeWorkspaceId }"
+          @click="openWorkspace(workspace)"
+        >
+          <div class="workspace-icon" :style="{ backgroundColor: workspace.color }">
+            {{ workspace.icon }}
+          </div>
+          <div class="workspace-info">
+            <span class="workspace-name">{{ workspace.name }}</span>
+            <span class="workspace-count">({{ workspace.tabs.length }})</span>
+          </div>
+          <div class="workspace-activity">
+            <div class="activity-bar">
+              <div 
+                class="activity-progress" 
+                :style="{ width: `${getWorkspaceActivity(workspace)}%` }"
+              ></div>
+            </div>
+          </div>
+          <div class="workspace-actions">
+            <button 
+              class="workspace-action"
+              @click.stop="openWorkspace(workspace)"
+              title="打开分组"
+            >
+              <PlayIcon class="w-3 h-3" />
+            </button>
+            <button 
+              class="workspace-action"
+              @click.stop="editWorkspace(workspace)"
+              title="编辑分组"
+            >
+              <PencilIcon class="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+        <button class="add-workspace-btn" @click="createWorkspace">
+          <PlusIcon class="w-4 h-4" />
+          <span>新建分组</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 快速操作 -->
+    <div class="tabs-actions-section">
+      <div class="section-title">
+        <PlusIcon class="w-4 h-4" />
+        <span>标签页操作</span>
+      </div>
+      <div class="tab-actions-grid">
+        <button class="tab-action-btn" @click="createNewTab">
+          <PlusIcon class="w-4 h-4" />
+          <span>新标签页</span>
+        </button>
+        <button class="tab-action-btn" @click="duplicateCurrentTab">
+          <DocumentDuplicateIcon class="w-4 h-4" />
+          <span>复制标签页</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 系统操作 -->
+    <div class="actions-section">
+      <div class="section-title">
+        <BoltIcon class="w-4 h-4" />
+        <span>系统操作</span>
+      </div>
+      <div class="actions-grid">
+        <button class="action-btn" @click="syncNow">
+          <CloudArrowUpIcon class="w-4 h-4" />
+          <span>同步</span>
+        </button>
+        <button class="action-btn" @click="createSnapshot">
+          <CameraIcon class="w-4 h-4" />
+          <span>快照</span>
+        </button>
+        <button class="action-btn" @click="restoreSession">
+          <ArrowPathIcon class="w-4 h-4" />
+          <span>恢复</span>
+        </button>
+        <button class="action-btn" @click="cleanDuplicates">
+          <TrashIcon class="w-4 h-4" />
+          <span>清理</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 命令面板 -->
+    <CommandPalette 
+      v-if="showCommandPalette" 
+      @close="showCommandPalette = false"
+      @execute="executeCommand"
+    />
+
+    <!-- 分组选择对话框 -->
+    <div v-if="showWorkspaceSelectorDialog" class="workspace-selector-overlay" @click="showWorkspaceSelectorDialog = false">
+      <div class="workspace-selector-dialog" @click.stop>
+        <h3>选择分组</h3>
+        <p class="dialog-desc">将 "{{ selectedTabForWorkspace?.title }}" 添加到哪个分组？</p>
+        <div class="workspace-list">
+          <div 
+            v-for="workspace in workspaces" 
+            :key="workspace.id"
+            class="workspace-option"
+            @click="selectWorkspaceForTab(workspace)"
+          >
+            <div class="workspace-icon" :style="{ backgroundColor: workspace.color }">
+              {{ workspace.icon }}
+            </div>
+            <div class="workspace-info">
+              <span class="workspace-name">{{ workspace.name }}</span>
+              <span class="workspace-count">{{ workspace.tabs.length }} 个标签页</span>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn-cancel" @click="showWorkspaceSelectorDialog = false">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 重复页面清理对话框 -->
+    <div v-if="showCleanupDialog" class="workspace-selector-overlay" @click="showCleanupDialog = false">
+      <div class="workspace-selector-dialog cleanup-dialog" @click.stop>
+        <h3>清理重复页面</h3>
+        <p class="dialog-desc">发现 {{ duplicateGroups.length }} 组重复页面，将保留每组的第一个标签页</p>
+        
+        <div class="duplicate-preview">
+          <div v-for="(group, index) in duplicateGroups.slice(0, 3)" :key="index" class="duplicate-group">
+            <div class="group-title">
+              <span class="group-icon">🔗</span>
+              <span>{{ truncateText(group.tabs[0]?.title || '未知页面', 25) }}</span>
+              <span class="duplicate-count">({{ group.tabs.length }}个)</span>
+            </div>
+            <div class="tabs-preview">
+              <div v-for="(tab, tabIndex) in group.tabs.slice(0, 2)" :key="tab.id" class="tab-preview">
+                <span class="tab-status" :class="{ 'keep': tabIndex === 0, 'close': tabIndex > 0 }">
+                  {{ tabIndex === 0 ? '保留' : '关闭' }}
+                </span>
+                <span class="tab-domain">{{ getDomain(tab.url) }}</span>
+              </div>
+              <div v-if="group.tabs.length > 2" class="more-tabs">
+                还有 {{ group.tabs.length - 2 }} 个标签页将被关闭
+              </div>
+            </div>
+          </div>
+          <div v-if="duplicateGroups.length > 3" class="more-groups">
+            还有 {{ duplicateGroups.length - 3 }} 组重复页面...
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn-cancel" @click="showCleanupDialog = false">取消</button>
+          <button class="btn-danger" @click="confirmCleanDuplicates">确认清理</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 会话恢复对话框 -->
+    <div v-if="showRestoreDialog" class="workspace-selector-overlay" @click="showRestoreDialog = false">
+      <div class="workspace-selector-dialog restore-dialog" @click.stop>
+        <h3>恢复会话</h3>
+        <p class="dialog-desc">选择要恢复的会话快照</p>
+        
+        <div class="snapshots-list">
+          <div v-if="availableSnapshots.length === 0" class="no-snapshots">
+            <span>暂无可用快照</span>
+          </div>
+          <div 
+            v-for="snapshot in availableSnapshots" 
+            :key="snapshot.id"
+            class="snapshot-item"
+            @click="restoreFromSnapshot(snapshot)"
+          >
+            <div class="snapshot-icon">
+              <CameraIcon class="w-4 h-4" />
+            </div>
+            <div class="snapshot-info">
+              <span class="snapshot-name">{{ snapshot.name }}</span>
+              <span class="snapshot-time">{{ formatSnapshotTime(snapshot.timestamp) }}</span>
+              <span class="snapshot-tabs" v-if="snapshot.metadata?.totalTabs">
+                {{ snapshot.metadata.totalTabs }} 个标签页
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn-cancel" @click="showRestoreDialog = false">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 通知 -->
+    <Notification 
+      v-if="notification"
+      :notification="notification"
+      @close="notification = null"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import {
+  MagnifyingGlassIcon,
+  ChartBarIcon,
+  DocumentDuplicateIcon,
+  FolderIcon,
+  BoltIcon,
+  Cog6ToothIcon,
+  PlayIcon,
+  PencilIcon,
+  PlusIcon,
+  ExclamationTriangleIcon,
+  CloudArrowUpIcon,
+  CameraIcon,
+  ArrowPathIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
+
+import CommandPalette from '@/components/CommandPalette.vue'
+import Notification from '@/components/Notification.vue'
+
+import type { TabInfo, Workspace, Stats, Notification as NotificationType } from '@/types'
+import { workspaceManager } from '@/utils/workspace-manager'
+import { syncManager } from '@/utils/sync-manager'
+import { duplicateDetector } from '@/utils/duplicate-detector'
+
+// 响应式数据
+const isDarkMode = ref(false)
+const showCommandPalette = ref(false)
+const notification = ref<NotificationType | null>(null)
+const activeWorkspaceId = ref<string | null>(null)
+
+const stats = reactive({
+  totalTabs: 0,
+  duplicateTabs: 0,
+  totalWorkspaces: 0,
+  lastSyncTime: 0 // 初始化为0，表示未同步
+})
+
+const currentTabs = ref<TabInfo[]>([])
+const workspaces = ref<Workspace[]>([])
+const duplicateTabs = ref<Set<string>>(new Set())
+
+// 标签页排序和过滤
+const tabSortMode = ref<'time' | 'domain' | 'group'>('time')
+const activeTabFilter = ref<'all' | 'active' | 'pinned' | 'duplicate'>('all')
+
+const tabSortLabels = {
+  time: '时间排序',
+  domain: '域名排序', 
+  group: '分组显示'
+}
+
+const tabFilters = [
+  { key: 'all', label: '全部', icon: '📄' },
+  { key: 'active', label: '活跃', icon: '●' },
+  { key: 'pinned', label: '固定', icon: '📌' },
+  { key: 'duplicate', label: '重复', icon: '⚠️' }
+]
+
+// 计算属性  
+const formatTime = computed(() => (timestamp: number) => {
+  if (!timestamp || timestamp === 0) return '未同步'
+  
+  const now = Date.now()
+  const diff = now - timestamp
+  
+  if (diff < 0) return '刚刚同步' // 防止未来时间
+  if (diff < 60000) return '刚刚同步'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+  return `${Math.floor(diff / 86400000)}天前`
+})
+
+const formatSnapshotTime = computed(() => (timestamp: number) => {
+  // 验证时间戳
+  if (!timestamp || typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
+    return '未知时间'
+  }
+  
+  const date = new Date(timestamp)
+  
+  // 检查日期是否有效
+  if (isNaN(date.getTime())) {
+    return '无效日期'
+  }
+  
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const snapshotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  
+  if (snapshotDate.getTime() === today.getTime()) {
+    return `今天 ${date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`
+  } else if (snapshotDate.getTime() === today.getTime() - 86400000) {
+    return `昨天 ${date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`
+  } else {
+    return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + 
+           ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }
+})
+
+// 标签页排序和过滤的计算属性
+const sortedAndFilteredTabs = computed(() => {
+  let tabs = [...currentTabs.value]
+  
+  // 先过滤
+  if (activeTabFilter.value !== 'all') {
+    switch (activeTabFilter.value) {
+      case 'active':
+        tabs = tabs.filter(tab => tab.active)
+        break
+      case 'pinned':
+        tabs = tabs.filter(tab => tab.pinned)
+        break
+      case 'duplicate':
+        tabs = tabs.filter(tab => isDuplicate(tab))
+        break
+    }
+  }
+  
+  // 再排序
+  switch (tabSortMode.value) {
+    case 'domain':
+      tabs.sort((a, b) => {
+        const domainA = getDomain(a.url)
+        const domainB = getDomain(b.url)
+        return domainA.localeCompare(domainB)
+      })
+      break
+    case 'time':
+      // 按索引排序（Chrome标签页索引反映了创建时间顺序）
+      tabs.sort((a, b) => (a.index || 0) - (b.index || 0))
+      break
+    case 'group':
+      // 分组模式下不需要额外排序，因为会用groupedTabs
+      break
+  }
+  
+  // 确保固定和活跃标签页优先显示
+  tabs.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    if (a.active && !b.active) return -1
+    if (!a.active && b.active) return 1
+    return 0
+  })
+  
+  return tabs
+})
+
+const groupedTabs = computed(() => {
+  const groups: { [key: string]: TabInfo[] } = {}
+  
+  currentTabs.value.forEach(tab => {
+    const domain = getDomain(tab.url)
+    if (!groups[domain]) {
+      groups[domain] = []
+    }
+    groups[domain].push(tab)
+  })
+  
+  return Object.entries(groups)
+    .map(([domain, tabs]) => ({
+      name: domain,
+      tabs: tabs.sort((a, b) => {
+        // 在组内按固定、活跃、索引排序
+        if (a.pinned && !b.pinned) return -1
+        if (!a.pinned && b.pinned) return 1
+        if (a.active && !b.active) return -1
+        if (!a.active && b.active) return 1
+        return (a.index || 0) - (b.index || 0)
+      })
+    }))
+    .sort((a, b) => {
+      // 按组内标签页数量排序
+      return b.tabs.length - a.tabs.length
+    })
+})
+
+// 存储监听器引用以便清理
+let tabListeners: Array<() => void> = []
+
+// 组件挂载时初始化
+onMounted(async () => {
+  console.log('🚀 Popup mounting...')
+  
+  // 首先设置事件监听器
+  setupEventListeners()
+  
+  // 然后加载数据
+  await loadData()
+  
+  // 检测主题
+  detectTheme()
+  
+  // 测试与background的连接
+  testBackgroundConnection()
+  
+  console.log('✅ Popup mounted successfully')
+})
+
+// 测试与background script的连接
+function testBackgroundConnection() {
+  try {
+    console.log('🔗 Testing connection to background script...')
+    chrome.runtime.sendMessage({ type: 'ping' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('❌ Background connection failed:', chrome.runtime.lastError)
+      } else {
+        console.log('✅ Background connection successful:', response)
+      }
+    })
+  } catch (error) {
+    console.error('❌ Failed to test background connection:', error)
+  }
+}
+
+// 组件卸载时清理监听器
+onUnmounted(() => {
+  tabListeners.forEach(cleanup => cleanup())
+  tabListeners = []
+})
+
+// 加载数据
+async function loadData() {
+  try {
+    console.log('🔄 Loading popup data...')
+    
+    // 加载标签页
+    const tabs = await chrome.tabs.query({})
+    console.log('📋 Loaded', tabs.length, 'tabs')
+    
+    // 强制触发Vue响应性更新
+    const newTabsData = tabs.map(tab => ({
+      id: tab.id,
+      url: tab.url || '',
+      title: tab.title || '',
+      favicon: tab.favIconUrl,
+      windowId: tab.windowId,
+      index: tab.index,
+      active: tab.active,
+      pinned: tab.pinned
+    }))
+    
+    // 完全替换数组以确保Vue响应性
+    currentTabs.value.splice(0, currentTabs.value.length, ...newTabsData)
+    console.log('📝 Updated currentTabs, new length:', currentTabs.value.length)
+
+    // 加载工作空间
+    const newWorkspaces = workspaceManager.getAllWorkspaces()
+    workspaces.value.splice(0, workspaces.value.length, ...newWorkspaces)
+    activeWorkspaceId.value = workspaceManager.getActiveWorkspace()?.id || null
+    console.log('🏢 Updated workspaces, count:', workspaces.value.length)
+
+    // 加载重复检测
+    const duplicates = await duplicateDetector.detectAllDuplicates()
+    const newDuplicateUrls = new Set(
+      duplicates.flatMap(group => group.tabs.map(tab => tab.url))
+    )
+    duplicateTabs.value.clear()
+    newDuplicateUrls.forEach(url => duplicateTabs.value.add(url))
+    console.log('🔍 Updated duplicates, count:', duplicateTabs.value.size)
+
+    // 更新统计 - 分别更新每个属性以确保响应性
+    const workspaceStats = workspaceManager.getWorkspaceStats()
+    
+    const oldStats = { ...stats }
+    
+    // 逐个更新stats属性以触发Vue响应性
+    const newTotalTabs = currentTabs.value.length
+    const newDuplicateTabs = duplicateTabs.value.size
+    const newTotalWorkspaces = workspaceStats.totalWorkspaces
+    
+    if (stats.totalTabs !== newTotalTabs) {
+      stats.totalTabs = newTotalTabs
+      console.log('📊 Updated totalTabs:', oldStats.totalTabs, '->', stats.totalTabs)
+    }
+    
+    if (stats.duplicateTabs !== newDuplicateTabs) {
+      stats.duplicateTabs = newDuplicateTabs
+      console.log('📊 Updated duplicateTabs:', oldStats.duplicateTabs, '->', stats.duplicateTabs)
+    }
+    
+    if (stats.totalWorkspaces !== newTotalWorkspaces) {
+      stats.totalWorkspaces = newTotalWorkspaces
+      console.log('📊 Updated totalWorkspaces:', oldStats.totalWorkspaces, '->', stats.totalWorkspaces)
+    }
+    
+    console.log('📊 Final stats:', {
+      totalTabs: stats.totalTabs,
+      duplicateTabs: stats.duplicateTabs,
+      totalWorkspaces: stats.totalWorkspaces
+    })
+    
+    // 获取同步时间，如果没有则保持为0
+    try {
+      const syncStats = await syncManager.getSyncStats()
+      // 优先使用 sync stats 中的时间，如果为 0 则获取最新快照的时间
+      if (syncStats.lastSyncTime && syncStats.lastSyncTime > 0) {
+        if (stats.lastSyncTime !== syncStats.lastSyncTime) {
+          stats.lastSyncTime = syncStats.lastSyncTime
+          console.log('🕒 Updated lastSyncTime from syncStats:', stats.lastSyncTime)
+        }
+      } else {
+        // 尝试从最新快照获取同步时间
+        const snapshots = await syncManager.getSnapshotList()
+        if (snapshots.length > 0) {
+          const snapshotTime = snapshots[0].timestamp
+          if (stats.lastSyncTime !== snapshotTime) {
+            stats.lastSyncTime = snapshotTime
+            console.log('🕒 Updated lastSyncTime from snapshot:', stats.lastSyncTime)
+          }
+        } else {
+          if (stats.lastSyncTime !== 0) {
+            stats.lastSyncTime = 0
+            console.log('🕒 Reset lastSyncTime to 0')
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to get sync stats:', error)
+      if (stats.lastSyncTime !== 0) {
+        stats.lastSyncTime = 0
+      }
+    }
+    
+    console.log('✅ Popup data loaded and UI updated successfully')
+    
+    // 强制Vue重新渲染（作为最后的保障）
+    await nextTick()
+    console.log('🔄 Forced Vue to re-render')
+    
+  } catch (error) {
+    console.error('❌ Error loading data:', error)
+    showNotification('error', '数据加载失败', '请刷新后重试')
+  }
+}
+
+// 设置事件监听器
+function setupEventListeners() {
+  // 监听命令面板快捷键
+  const handleCommandPalette = () => {
+    showCommandPalette.value = true
+  }
+  window.addEventListener('open-command-palette', handleCommandPalette)
+  tabListeners.push(() => window.removeEventListener('open-command-palette', handleCommandPalette))
+
+  // 监听Chrome扩展消息
+  const handleMessage = (message: any, sender: any, sendResponse: any) => {
+    console.log('Popup received message:', message.type, message)
+    
+    switch (message.type) {
+      case 'tab-created':
+      case 'tab-updated':
+      case 'tab-removed':
+      case 'tab-activated':
+      case 'window-created':
+      case 'window-removed':
+        console.log('🔄 Refreshing popup data due to:', message.type)
+        loadData()
+        break
+      case 'open-command-palette':
+        showCommandPalette.value = true
+        break
+      case 'heartbeat':
+        console.log('💓 Heartbeat received from background:', message.payload.timestamp)
+        break
+      case 'duplicate-notification-fallback':
+        console.log('🔔 Received duplicate notification fallback:', message.payload)
+        showDuplicateNotificationInPopup(message.payload)
+        break
+      default:
+        console.log('❓ Unhandled message type:', message.type)
+    }
+  }
+  chrome.runtime.onMessage.addListener(handleMessage)
+  tabListeners.push(() => chrome.runtime.onMessage.removeListener(handleMessage))
+
+  // 监听焦点变化以实时更新数据
+  const handleWindowFocus = () => {
+    console.log('Window focus changed, refreshing data')
+    loadData()
+  }
+  window.addEventListener('focus', handleWindowFocus)
+  tabListeners.push(() => window.removeEventListener('focus', handleWindowFocus))
+
+  // 监听页面可见性变化
+  const handleVisibilityChange = () => {
+    if (!document.hidden) {
+      console.log('Page became visible, refreshing data')
+      loadData()
+    }
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  tabListeners.push(() => document.removeEventListener('visibilitychange', handleVisibilityChange))
+}
+
+// 检测主题
+async function detectTheme() {
+  try {
+    // 获取用户设置的主题
+    const userSettings = await chrome.storage.sync.get(['settings'])
+    const themeSettings = userSettings.settings?.ui?.theme || 'auto'
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    
+    function updateTheme() {
+      switch (themeSettings) {
+        case 'dark':
+          isDarkMode.value = true
+          break
+        case 'light':
+          isDarkMode.value = false
+          break
+        case 'auto':
+        default:
+          isDarkMode.value = mediaQuery.matches
+          break
+      }
+      
+      // 应用到文档根元素
+      if (isDarkMode.value) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+    
+    // 立即应用
+    updateTheme()
+    
+    // 监听系统主题变化
+    mediaQuery.addEventListener('change', updateTheme)
+  } catch (error) {
+    // 如果获取设置失败，使用系统主题
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    isDarkMode.value = mediaQuery.matches
+    
+    mediaQuery.addEventListener('change', (e) => {
+      isDarkMode.value = e.matches
+    })
+  }
+}
+
+// 工具函数
+function truncateText(text: string, maxLength: number): string {
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
+}
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname
+  } catch {
+    return url
+  }
+}
+
+function getFaviconUrl(favicon: string | undefined): string {
+  // 如果没有favicon或者favicon为空，使用默认图标
+  if (!favicon || favicon.trim() === '') {
+    return chrome.runtime.getURL('icons/default-favicon.png')
+  }
+  
+  // 检查缓存中是否有这个favicon的成功替代品
+  if (faviconCache.has(favicon)) {
+    return faviconCache.get(favicon)!
+  }
+  
+  // 如果这个favicon之前失败过，直接使用默认图标
+  if (faviconErrors.has(favicon)) {
+    const defaultUrl = chrome.runtime.getURL('icons/default-favicon.png')
+    faviconCache.set(favicon, defaultUrl)
+    return defaultUrl
+  }
+  
+  // 如果favicon是data URL或者有效的http(s) URL，直接使用
+  if (favicon.startsWith('data:') || favicon.startsWith('http://') || favicon.startsWith('https://')) {
+    return favicon
+  }
+  
+  // 如果favicon是相对路径，也尝试使用（某些网站可能有特殊favicon）
+  return favicon
+}
+
+function isDuplicate(tab: TabInfo): boolean {
+  return duplicateTabs.value.has(tab.url)
+}
+
+function getWorkspaceActivity(workspace: Workspace): number {
+  // 基于标签页数量和最近更新时间计算活跃度
+  const tabCount = workspace.tabs.length
+  const timeSinceUpdate = Date.now() - workspace.updatedAt
+  const hoursSinceUpdate = timeSinceUpdate / (1000 * 60 * 60)
+  
+  let activity = Math.min(tabCount * 10, 100)
+  if (hoursSinceUpdate > 24) activity *= 0.5
+  if (hoursSinceUpdate > 168) activity *= 0.3 // 一周
+  
+  return Math.max(0, Math.min(100, activity))
+}
+
+// 用于跟踪已经失败的favicon
+const faviconErrors = new Set<string>()
+// 用于缓存成功的favicon
+const faviconCache = new Map<string, string>()
+
+function handleFaviconError(event: Event) {
+  const img = event.target as HTMLImageElement
+  const originalSrc = img.src
+  
+  // 如果这个图片已经尝试过默认favicon了，就不要再尝试了
+  if (faviconErrors.has(originalSrc) || img.src.includes('default-favicon.png')) {
+    console.log('🚫 Favicon loading failed, using fallback text icon')
+    // 使用文本图标代替
+    img.style.display = 'none'
+    
+    // 创建一个文本图标替代
+    const textIcon = document.createElement('div')
+    textIcon.style.cssText = `
+      width: 16px;
+      height: 16px;
+      background: #007AFF;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      color: white;
+      flex-shrink: 0;
+    `
+    textIcon.textContent = '🌐'
+    
+    // 替换原始图片
+    if (img.parentNode) {
+      img.parentNode.insertBefore(textIcon, img)
+      img.remove()
+    }
+    return
+  }
+  
+  // 记录这个URL已经失败了
+  faviconErrors.add(originalSrc)
+  
+  // 尝试使用默认favicon
+  try {
+    img.src = chrome.runtime.getURL('icons/default-favicon.png')
+    console.log('🔄 Trying default favicon for failed URL:', originalSrc)
+  } catch (error) {
+    console.error('❌ Failed to load default favicon:', error)
+    // 最终降级：隐藏图片
+    img.style.display = 'none'
+  }
+}
+
+// 标签页排序和过滤操作
+function toggleTabSort() {
+  const modes: ('time' | 'domain' | 'group')[] = ['time', 'domain', 'group']
+  const currentIndex = modes.indexOf(tabSortMode.value)
+  const nextIndex = (currentIndex + 1) % modes.length
+  tabSortMode.value = modes[nextIndex]
+  console.log('🔄 Tab sort mode changed to:', tabSortMode.value)
+}
+
+function setTabFilter(filterKey: 'all' | 'active' | 'pinned' | 'duplicate') {
+  activeTabFilter.value = filterKey
+  console.log('🔍 Tab filter changed to:', filterKey)
+}
+
+function getFilteredTabsCount(filterKey: 'all' | 'active' | 'pinned' | 'duplicate'): number {
+  switch (filterKey) {
+    case 'all':
+      return currentTabs.value.length
+    case 'active':
+      return currentTabs.value.filter(tab => tab.active).length
+    case 'pinned':
+      return currentTabs.value.filter(tab => tab.pinned).length
+    case 'duplicate':
+      return currentTabs.value.filter(tab => isDuplicate(tab)).length
+    default:
+      return 0
+  }
+}
+
+// 操作函数
+async function switchToTab(tab: TabInfo) {
+  if (tab.id) {
+    await chrome.tabs.update(tab.id, { active: true })
+    window.close()
+  }
+}
+
+async function openCommandPalette() {
+  showCommandPalette.value = true
+}
+
+async function openSettings() {
+  await chrome.runtime.openOptionsPage()
+}
+
+async function handleDuplicate(tab: TabInfo) {
+  try {
+    const duplicates = await duplicateDetector.detectNewTabDuplicates(tab)
+    if (duplicates.length > 0) {
+      // 显示重复处理界面
+      showNotification('info', '发现重复页面', `找到 ${duplicates.length} 个重复页面`)
+    }
+  } catch (error) {
+    showNotification('error', '检测失败', '无法检测重复页面')
+  }
+}
+
+async function addToWorkspace(tab: TabInfo) {
+  try {
+    if (workspaces.value.length === 0) {
+      showNotification('info', '没有分组', '请先创建一个分组')
+      return
+    }
+
+    // 如果只有一个分组，直接添加到该分组
+    if (workspaces.value.length === 1) {
+      await addTabToSpecificWorkspace(tab, workspaces.value[0])
+      return
+    }
+
+    // 多个分组时，显示选择对话框
+    showWorkspaceSelector(tab)
+  } catch (error) {
+    console.error('Error adding tab to workspace:', error)
+    showNotification('error', '添加失败', '无法添加到分组')
+  }
+}
+
+// 添加状态管理
+const showWorkspaceSelectorDialog = ref(false)
+const selectedTabForWorkspace = ref<TabInfo | null>(null)
+
+function showWorkspaceSelector(tab: TabInfo) {
+  selectedTabForWorkspace.value = tab
+  showWorkspaceSelectorDialog.value = true
+}
+
+async function addTabToSpecificWorkspace(tab: TabInfo, workspace: Workspace) {
+  const tabToAdd = {
+    id: tab.id,
+    url: tab.url,
+    title: tab.title,
+    favicon: tab.favicon,
+    addedAt: Date.now()
+  }
+
+  // 检查是否已存在
+  const exists = workspace.tabs.some(existingTab => existingTab.url === tab.url)
+  if (exists) {
+    showNotification('info', '标签页已存在', `"${tab.title}" 已在分组中`)
+    return
+  }
+
+  await workspaceManager.addTabToWorkspace(workspace.id, tabToAdd)
+  
+  // 更新本地工作空间数据
+  workspace.tabs.push(tabToAdd)
+  workspace.updatedAt = Date.now()
+  
+  showNotification('success', '添加成功', `已添加到 "${workspace.name}"`)
+}
+
+async function selectWorkspaceForTab(workspace: Workspace) {
+  if (selectedTabForWorkspace.value) {
+    await addTabToSpecificWorkspace(selectedTabForWorkspace.value, workspace)
+    showWorkspaceSelectorDialog.value = false
+    selectedTabForWorkspace.value = null
+  }
+}
+
+async function openWorkspace(workspace: Workspace) {
+  try {
+    await workspaceManager.openWorkspace(workspace.id)
+    showNotification('success', '工作空间已打开', `打开了 ${workspace.tabs.length} 个标签页`)
+    window.close()
+  } catch (error) {
+    showNotification('error', '打开失败', '无法打开工作空间')
+  }
+}
+
+async function editWorkspace(workspace: Workspace) {
+  try {
+    const newName = prompt('请输入新的分组名称：', workspace.name)
+    if (!newName || newName.trim() === '') return // 用户取消或输入为空
+    
+    const trimmedName = newName.trim()
+    if (trimmedName === workspace.name) return // 名称没有改变
+    
+    // 更新工作空间名称
+    await workspaceManager.updateWorkspace(workspace.id, { name: trimmedName })
+    
+    // 更新本地数据
+    workspace.name = trimmedName
+    workspace.updatedAt = Date.now()
+    
+    showNotification('success', '分组已更新', `分组名称已更改为 "${trimmedName}"`)
+  } catch (error) {
+    console.error('Error editing workspace:', error)
+    showNotification('error', '更新失败', '无法更新分组名称')
+  }
+}
+
+async function createWorkspace() {
+  try {
+    const name = prompt('请输入分组名称：', `分组 ${workspaces.value.length + 1}`)
+    if (!name || name.trim() === '') return // 用户取消或输入为空
+    
+    const workspace = await workspaceManager.createWorkspace({
+      name: name.trim(),
+      icon: '📁',
+      color: '#007AFF',
+      tabs: []
+    })
+    workspaces.value.push(workspace)
+    showNotification('success', '分组已创建', workspace.name)
+  } catch (error) {
+    showNotification('error', '创建失败', '无法创建分组')
+  }
+}
+
+async function syncNow() {
+  try {
+    const snapshot = await syncManager.createSnapshot('manual')
+    if (snapshot) {
+      stats.lastSyncTime = snapshot.timestamp
+      showNotification('success', '同步完成', '会话已保存')
+    } else {
+      showNotification('error', '同步失败', '请稍后重试')
+    }
+  } catch (error) {
+    showNotification('error', '同步失败', '请稍后重试')
+  }
+}
+
+async function createSnapshot() {
+  try {
+    const snapshot = await syncManager.createSnapshot('manual', `手动快照_${new Date().toLocaleString()}`)
+    if (snapshot) {
+      showNotification('success', '快照已创建', snapshot.name)
+    }
+  } catch (error) {
+    showNotification('error', '创建失败', '无法创建快照')
+  }
+}
+
+async function restoreSession() {
+  try {
+    const snapshots = await syncManager.getSnapshotList()
+    if (snapshots.length === 0) {
+      showNotification('info', '没有快照', '没有可恢复的会话快照')
+      return
+    }
+    
+    showSessionRestoreDialog(snapshots)
+  } catch (error) {
+    console.error('Error getting snapshots:', error)
+    showNotification('error', '获取失败', '无法获取会话快照')
+  }
+}
+
+// 会话恢复对话框状态
+const showRestoreDialog = ref(false)
+const availableSnapshots = ref<any[]>([])
+
+function showSessionRestoreDialog(snapshots: any[]) {
+  availableSnapshots.value = snapshots.slice(0, 10) // 限制显示最新10个
+  showRestoreDialog.value = true
+}
+
+async function restoreFromSnapshot(snapshot: any) {
+  try {
+    await syncManager.restoreSnapshot(snapshot.id)
+    showRestoreDialog.value = false
+    showNotification('success', '恢复成功', `已恢复 "${snapshot.name}" 快照`)
+    window.close()
+  } catch (error) {
+    console.error('Error restoring snapshot:', error)
+    showNotification('error', '恢复失败', '无法恢复会话快照')
+  }
+}
+
+async function cleanDuplicates() {
+  try {
+    const duplicates = await duplicateDetector.detectAllDuplicates()
+    if (duplicates.length === 0) {
+      showNotification('info', '无需清理', '没有发现重复页面')
+      return
+    }
+    
+    // 显示清理确认对话框
+    showDuplicateCleanupDialog(duplicates)
+  } catch (error) {
+    showNotification('error', '检测失败', '无法检测重复页面')
+  }
+}
+
+// 添加重复清理对话框状态
+const showCleanupDialog = ref(false)
+const duplicateGroups = ref<any[]>([])
+
+function showDuplicateCleanupDialog(duplicates: any[]) {
+  duplicateGroups.value = duplicates
+  showCleanupDialog.value = true
+}
+
+async function confirmCleanDuplicates() {
+  try {
+    let closedCount = 0
+    
+    for (const group of duplicateGroups.value) {
+      // 保留第一个标签页，关闭其余的
+      const tabsToClose = group.tabs.slice(1)
+      
+      for (const tab of tabsToClose) {
+        try {
+          await chrome.tabs.remove(tab.id)
+          closedCount++
+        } catch (error) {
+          console.warn(`Failed to close tab ${tab.id}:`, error)
+        }
+      }
+    }
+    
+    showCleanupDialog.value = false
+    duplicateGroups.value = []
+    
+    if (closedCount > 0) {
+      showNotification('success', '清理完成', `已关闭 ${closedCount} 个重复标签页`)
+      // 重新加载数据
+      await loadData()
+    } else {
+      showNotification('info', '无法清理', '没有成功关闭任何标签页')
+    }
+  } catch (error) {
+    showNotification('error', '清理失败', '清理过程中出现错误')
+  }
+}
+
+function executeCommand(command: any) {
+  // 执行命令
+  showCommandPalette.value = false
+  showNotification('info', '执行命令', command.title)
+}
+
+// 新标签页相关功能
+async function createNewTab() {
+  try {
+    console.log('🚀 Starting createNewTab function')
+    
+    // 提示用户输入URL
+    const url = prompt('请输入要打开的网址：', 'https://')
+    if (!url) {
+      console.log('❌ User cancelled URL input')
+      return // 用户取消
+    }
+    
+    // 检查URL格式
+    let finalUrl = url
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('chrome://')) {
+      finalUrl = 'https://' + url
+    }
+    
+    console.log('🔗 Creating new tab with URL:', finalUrl)
+    
+    // 创建临时标签页对象用于重复检测
+    const tempTab: TabInfo = {
+      id: undefined,
+      url: finalUrl,
+      title: finalUrl,
+      favicon: undefined,
+      windowId: undefined,
+      index: 0,
+      active: false,
+      pinned: false
+    }
+    
+    console.log('🔍 Starting duplicate detection for:', tempTab)
+    console.log('📋 Current tabs before detection:', currentTabs.value.length)
+    
+    // 使用重复检测器检查是否存在重复页面
+    const duplicates = await duplicateDetector.detectNewTabDuplicates(tempTab)
+    
+    console.log('🎯 Duplicate detection completed. Found:', duplicates.length, 'duplicates')
+    console.log('📝 Duplicate details:', duplicates)
+    
+    if (duplicates.length > 0) {
+      console.log('⚠️ Duplicates found! Showing confirmation dialog...')
+      
+      // 构建重复页面信息
+      const duplicateInfo = duplicates.map(tab => `"${tab.title || tab.url}"`).join('、')
+      const message = `⚠️ 发现重复页面！\n\n重复页面：${duplicateInfo}\n\n❓ 您希望如何处理？\n\n✅ 点击"确定"：仍然打开新标签页\n❌ 点击"取消"：切换到现有页面`
+      
+      console.log('📢 Showing confirmation dialog:', message)
+      const shouldCreateNew = confirm(message)
+      console.log('👤 User choice - Create new tab:', shouldCreateNew)
+      
+      if (!shouldCreateNew) {
+        // 切换到第一个重复页面
+        const firstDuplicate = duplicates[0]
+        if (firstDuplicate.id) {
+          console.log('🔀 Switching to existing tab:', firstDuplicate.id)
+          await chrome.tabs.update(firstDuplicate.id, { active: true })
+          showNotification('info', '已切换到现有页面', `已切换到现有的标签页：${firstDuplicate.title || firstDuplicate.url}`)
+          window.close()
+          return
+        }
+      }
+    } else {
+      console.log('✅ No duplicates found, proceeding to create new tab')
+    }
+    
+    // 创建新标签页
+    console.log('📄 Creating new tab...')
+    const newTab = await chrome.tabs.create({ url: finalUrl })
+    console.log('✅ New tab created successfully:', newTab)
+    
+    if (duplicates.length > 0) {
+      showNotification('warning', '已创建重复标签页', `⚠️ 已打开新标签页，但检测到 ${duplicates.length} 个重复页面`)
+    } else {
+      showNotification('success', '新标签页已创建', '✅ 已成功打开新的标签页')
+    }
+    
+    window.close()
+  } catch (error) {
+    console.error('❌ Error in createNewTab:', error)
+    showNotification('error', '创建失败', '❌ 无法创建新标签页，请重试')
+  }
+}
+
+async function duplicateCurrentTab() {
+  try {
+    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    if (currentTab && currentTab.url) {
+      console.log('Duplicating current tab:', currentTab)
+      
+      // 创建临时标签页对象用于重复检测
+      const tempTab: TabInfo = {
+        id: undefined,
+        url: currentTab.url,
+        title: currentTab.title || currentTab.url,
+        favicon: currentTab.favIconUrl,
+        windowId: undefined,
+        index: 0,
+        active: false,
+        pinned: false
+      }
+      
+      // 检查是否存在重复页面
+      const duplicates = await duplicateDetector.detectNewTabDuplicates(tempTab)
+      console.log('Duplicate detection result for current tab:', duplicates)
+      
+      if (duplicates.length > 0) { // 包含当前标签页本身
+        const duplicateInfo = duplicates.map(tab => `"${tab.title || tab.url}"`).join('、')
+        const message = `⚠️ 检测到重复页面！\n\n当前页面与以下页面重复：\n${duplicateInfo}\n\n❓ 是否仍要复制当前标签页？\n\n✅ 点击"确定"：复制标签页\n❌ 点击"取消"：不复制`
+        
+        const shouldDuplicate = confirm(message)
+        
+        if (!shouldDuplicate) {
+          showNotification('info', '操作已取消', '已取消复制重复标签页')
+          return
+        }
+      }
+      
+      // 创建重复标签页
+      const newTab = await chrome.tabs.create({ url: currentTab.url })
+      console.log('Tab duplicated:', newTab)
+      
+      if (duplicates.length > 0) {
+        showNotification('warning', '已创建重复标签页', `⚠️ 已复制标签页，现在共有 ${duplicates.length + 1} 个相同页面`)
+      } else {
+        showNotification('success', '标签页已复制', '✅ 已成功复制当前标签页')
+      }
+      
+      window.close()
+    } else {
+      showNotification('error', '复制失败', '❌ 无法获取当前标签页信息')
+    }
+  } catch (error) {
+    console.error('Error duplicating tab:', error)
+    showNotification('error', '复制失败', '❌ 无法复制当前标签页，请重试')
+  }
+}
+
+async function closeTab(tab: TabInfo) {
+  try {
+    if (tab.id) {
+      console.log('🗑️ Closing tab:', tab.title)
+      await chrome.tabs.remove(tab.id)
+      showNotification('success', '标签页已关闭', `已关闭 "${truncateText(tab.title, 20)}"`)
+      
+      // 手动从本地列表中移除以立即更新UI
+      const index = currentTabs.value.findIndex(t => t.id === tab.id)
+      if (index > -1) {
+        currentTabs.value.splice(index, 1)
+        console.log('📝 Removed tab from local list, remaining:', currentTabs.value.length)
+        
+        // 更新统计
+        stats.totalTabs = currentTabs.value.length
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error closing tab:', error)
+    showNotification('error', '关闭失败', '无法关闭标签页')
+  }
+}
+
+function showDuplicateNotificationInPopup(payload: any) {
+  try {
+    const { tab, duplicates, message } = payload
+    console.log('🔔 Showing duplicate notification in popup:', payload)
+    
+    // 显示一个特殊的重复页面通知
+    showNotification('warning', '检测到重复页面', message)
+    
+    // 同时在控制台提供详细信息
+    console.log('⚠️ 重复页面详情:')
+    console.log('当前页面:', tab)
+    console.log('重复页面:', duplicates)
+    
+    // 可以考虑在这里添加更多的UI反馈，比如高亮显示重复的标签页
+    
+  } catch (error) {
+    console.error('❌ Error showing duplicate notification in popup:', error)
+  }
+}
+
+function showNotification(type: NotificationType['type'], title: string, message?: string) {
+  notification.value = {
+    id: Date.now().toString(),
+    type,
+    title,
+    message,
+    duration: type === 'warning' ? 5000 : 3000 // 警告通知显示更长时间
+  }
+  
+  const duration = notification.value.duration
+  setTimeout(() => {
+    notification.value = null
+  }, duration)
+}
+</script>
