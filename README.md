@@ -1,4 +1,4 @@
-# ⚡ Smart Tab Manager
+<img width="448" height="316" alt="image" src="https://github.com/user-attachments/assets/46674c4e-141b-40f5-a9d9-c53cf8d61543" /># ⚡ Smart Tab Manager
 
 > 一个浏览器标签页管理插件，解决您不断打开重复Tab的习惯！
 
@@ -64,7 +64,11 @@
 
 ![恢复界面](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/config-sync.png)
 
-![恢复界面](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/config-snapshot.png))
+![恢复界面](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/config-snapshot.png)
+
+
+### 检测重复提示
+![工作空间](https://github.com/wxt2rr/smart-tab-manager/blob/main/doc-images/select.png)
 
 </div>
 
