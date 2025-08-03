@@ -4,25 +4,25 @@
       <div class="header-content">
         <div class="logo">
           <span class="logo-icon">⚡</span>
-          <h1 class="logo-text">Smart Tab Manager</h1>
+          <h1 class="logo-text">{{ t('options.title') }}</h1>
           <span class="version">v1.0.0</span>
         </div>
-        <p class="description">现代化的浏览器标签页管理工具</p>
+        <p class="description">{{ t('options.description') }}</p>
       </div>
     </div>
 
     <div class="options-content">
       <nav class="sidebar">
         <div class="nav-section">
-          <h3>设置</h3>
+          <h3>{{ t('options.nav.settings') }}</h3>
           <ul class="nav-list">
             <li>
               <button 
                 :class="['nav-item', { active: activeTab === 'general' }]"
                 @click="activeTab = 'general'"
               >
-                <CogIcon class="nav-icon w-4 h-4" />
-                <span>常规设置</span>
+                <FontAwesomeIcon icon="cog" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.general') }}</span>
               </button>
             </li>
             <li>
@@ -30,8 +30,8 @@
                 :class="['nav-item', { active: activeTab === 'sync' }]"
                 @click="activeTab = 'sync'"
               >
-                <CloudArrowUpIcon class="nav-icon w-4 h-4" />
-                <span>同步设置</span>
+                <FontAwesomeIcon icon="cloud-upload-alt" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.sync') }}</span>
               </button>
             </li>
             <li>
@@ -39,8 +39,8 @@
                 :class="['nav-item', { active: activeTab === 'duplicates' }]"
                 @click="activeTab = 'duplicates'"
               >
-                <DocumentDuplicateIcon class="nav-icon w-4 h-4" />
-                <span>重复检测</span>
+                <FontAwesomeIcon icon="copy" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.duplicates') }}</span>
               </button>
             </li>
             <li>
@@ -48,23 +48,23 @@
                 :class="['nav-item', { active: activeTab === 'shortcuts' }]"
                 @click="activeTab = 'shortcuts'"
               >
-                <CommandLineIcon class="nav-icon w-4 h-4" />
-                <span>快捷键</span>
+                <FontAwesomeIcon icon="terminal" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.shortcuts') }}</span>
               </button>
             </li>
           </ul>
         </div>
 
         <div class="nav-section">
-          <h3>数据</h3>
+          <h3>{{ t('options.nav.data') }}</h3>
           <ul class="nav-list">
             <li>
               <button 
                 :class="['nav-item', { active: activeTab === 'snapshots' }]"
                 @click="activeTab = 'snapshots'"
               >
-                <CameraIcon class="nav-icon w-4 h-4" />
-                <span>快照记录</span>
+                <FontAwesomeIcon icon="camera" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.snapshots') }}</span>
               </button>
             </li>
             <li>
@@ -72,23 +72,23 @@
                 :class="['nav-item', { active: activeTab === 'backup' }]"
                 @click="activeTab = 'backup'"
               >
-                <ArchiveBoxIcon class="nav-icon w-4 h-4" />
-                <span>备份还原</span>
+                <FontAwesomeIcon icon="archive" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.backup') }}</span>
               </button>
             </li>
           </ul>
         </div>
 
         <div class="nav-section">
-          <h3>关于</h3>
+          <h3>{{ t('options.nav.about') }}</h3>
           <ul class="nav-list">
             <li>
               <button 
                 :class="['nav-item', { active: activeTab === 'about' }]"
                 @click="activeTab = 'about'"
               >
-                <InformationCircleIcon class="nav-icon w-4 h-4" />
-                <span>关于插件</span>
+                <FontAwesomeIcon icon="info-circle" class="nav-icon w-4 h-4" />
+                <span>{{ t('options.nav.aboutPlugin') }}</span>
               </button>
             </li>
           </ul>
@@ -98,26 +98,26 @@
       <main class="main-content">
         <!-- 常规设置 -->
         <div v-if="activeTab === 'general'" class="settings-panel">
-          <h2>常规设置</h2>
+          <h2>{{ t('options.nav.general') }}</h2>
           
           <div class="setting-group">
-            <h3>外观</h3>
+            <h3>{{ t('options.general.appearance') }}</h3>
             <div class="setting-item">
               <label class="setting-label">
-                <span>主题</span>
-                <span class="setting-description">选择界面主题</span>
+                <span>{{ t('options.general.theme') }}</span>
+                <span class="setting-description">{{ t('options.general.themeDesc') }}</span>
               </label>
               <select v-model="settings.ui.theme" class="setting-select">
-                <option value="auto">跟随系统</option>
-                <option value="light">浅色模式</option>
-                <option value="dark">深色模式</option>
+                <option value="auto">{{ t('options.general.themeAuto') }}</option>
+                <option value="light">{{ t('options.general.themeLight') }}</option>
+                <option value="dark">{{ t('options.general.themeDark') }}</option>
               </select>
             </div>
             
             <div class="setting-item">
               <label class="setting-label">
-                <span>语言</span>
-                <span class="setting-description">界面显示语言</span>
+                <span>{{ t('options.general.language') }}</span>
+                <span class="setting-description">{{ t('options.general.languageDesc') }}</span>
               </label>
               <select v-model="settings.ui.language" class="setting-select">
                 <option value="zh-CN">简体中文</option>
@@ -127,8 +127,8 @@
 
             <div class="setting-item">
               <label class="setting-label">
-                <span>紧凑模式</span>
-                <span class="setting-description">使用更紧凑的界面布局</span>
+                <span>{{ t('options.general.compactMode') }}</span>
+                <span class="setting-description">{{ t('options.general.compactModeDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -143,14 +143,14 @@
 
         <!-- 同步设置 -->
         <div v-if="activeTab === 'sync'" class="settings-panel">
-          <h2>同步设置</h2>
+          <h2>{{ t('options.sync.title') }}</h2>
           
           <div class="setting-group">
-            <h3>自动同步</h3>
+            <h3>{{ t('options.sync.autoSync') }}</h3>
             <div class="setting-item">
               <label class="setting-label">
-                <span>启用自动同步</span>
-                <span class="setting-description">定期自动保存浏览器状态</span>
+                <span>{{ t('options.sync.autoSync') }}</span>
+                <span class="setting-description">{{ t('options.sync.autoSyncDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -163,14 +163,14 @@
 
             <div class="setting-item" v-if="settings.autoSync.enabled">
               <label class="setting-label">
-                <span>同步间隔</span>
-                <span class="setting-description">自动同步的时间间隔</span>
+                <span>{{ t('options.sync.interval') }}</span>
+                <span class="setting-description">{{ t('options.sync.intervalDesc') }}</span>
               </label>
               <select v-model="settings.autoSync.interval" class="setting-select">
-                <option :value="60000">1分钟</option>
-                <option :value="300000">5分钟</option>
-                <option :value="600000">10分钟</option>
-                <option :value="1800000">30分钟</option>
+                <option :value="60000">{{ t('options.sync.interval1min') }}</option>
+                <option :value="300000">{{ t('options.sync.interval5min') }}</option>
+                <option :value="600000">{{ t('options.sync.interval10min') }}</option>
+                <option :value="1800000">{{ t('options.sync.interval30min') }}</option>
               </select>
             </div>
           </div>
@@ -178,14 +178,14 @@
 
         <!-- 重复检测设置 -->
         <div v-if="activeTab === 'duplicates'" class="settings-panel">
-          <h2>重复检测</h2>
+          <h2>{{ t('options.duplicates.title') }}</h2>
           
           <div class="setting-group">
-            <h3>检测设置</h3>
+            <h3>{{ t('options.duplicates.enable') }}</h3>
             <div class="setting-item">
               <label class="setting-label">
-                <span>启用重复检测</span>
-                <span class="setting-description">自动检测并提醒重复的标签页</span>
+                <span>{{ t('options.duplicates.enable') }}</span>
+                <span class="setting-description">{{ t('options.duplicates.enableDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -199,18 +199,18 @@
           </div>
 
           <div class="setting-group">
-            <h3>白名单</h3>
-            <p class="setting-description">添加不需要检测重复的网站</p>
+            <h3>{{ t('options.duplicates.whitelist') }}</h3>
+            <p class="setting-description">{{ t('options.duplicates.whitelistDesc') }}</p>
             <div class="whitelist-container">
               <div class="whitelist-input">
                 <input 
                   type="text" 
                   v-model="newWhitelistDomain"
-                  placeholder="输入域名，例如：example.com"
+                  :placeholder="t('options.duplicates.whitelistPlaceholder')"
                   class="setting-input"
                   @keydown.enter="addToWhitelist"
                 />
-                <button @click="addToWhitelist" class="btn-primary">添加</button>
+                <button @click="addToWhitelist" class="btn-primary">{{ t('common.add') }}</button>
               </div>
               <div class="whitelist-list">
                 <div 
@@ -220,7 +220,7 @@
                 >
                   <span>{{ domain }}</span>
                   <button @click="removeFromWhitelist(domain)" class="btn-remove">
-                    <XMarkIcon class="w-4 h-4" />
+                    <FontAwesomeIcon icon="times" class="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -284,7 +284,7 @@
                 </span>
               </div>
               <button @click="loadSnapshots" class="btn-secondary">
-                <ArrowPathIcon class="w-4 h-4" />
+                <FontAwesomeIcon icon="sync" class="w-4 h-4" />
                 刷新
               </button>
             </div>
@@ -294,11 +294,11 @@
             </div>
 
             <div v-else-if="snapshots.length === 0" class="no-snapshots">
-              <CameraIcon class="w-12 h-12 text-gray-300" />
+              <FontAwesomeIcon icon="camera" class="w-12 h-12 text-gray-300" />
               <h3>暂无快照</h3>
               <p>您还没有创建任何会话快照</p>
               <button @click="createSnapshot" class="btn-primary">
-                <CameraIcon class="w-4 h-4" />
+                <FontAwesomeIcon icon="camera" class="w-4 h-4" />
                 创建快照
               </button>
             </div>
@@ -311,7 +311,7 @@
               >
                 <div class="snapshot-header">
                   <div class="snapshot-icon">
-                    <CameraIcon class="w-5 h-5" />
+                    <FontAwesomeIcon icon="camera" class="w-5 h-5" />
                   </div>
                   <div class="snapshot-title">
                     <h4>{{ snapshot.name }}</h4>
@@ -319,10 +319,10 @@
                   </div>
                   <div class="snapshot-actions">
                     <button @click="restoreSnapshot(snapshot)" class="btn-restore" title="恢复快照">
-                      <ArrowPathIcon class="w-4 h-4" />
+                      <FontAwesomeIcon icon="sync" class="w-4 h-4" />
                     </button>
                     <button @click="deleteSnapshot(snapshot)" class="btn-delete" title="删除快照">
-                      <TrashIcon class="w-4 h-4" />
+                      <FontAwesomeIcon icon="trash" class="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -356,7 +356,7 @@
             <h3>导出数据</h3>
             <p class="setting-description">导出所有设置、工作空间和快照数据</p>
             <button @click="exportData" class="btn-primary">
-              <ArrowDownTrayIcon class="w-4 h-4" />
+              <FontAwesomeIcon icon="download" class="w-4 h-4" />
               导出数据
             </button>
           </div>
@@ -372,7 +372,7 @@
               style="display: none"
             />
             <button @click="$refs.importInput?.click()" class="btn-secondary">
-              <ArrowUpTrayIcon class="w-4 h-4" />
+              <FontAwesomeIcon icon="upload" class="w-4 h-4" />
               选择文件
             </button>
           </div>
@@ -381,7 +381,7 @@
             <h3>重置数据</h3>
             <p class="setting-description">清除所有数据并恢复默认设置</p>
             <button @click="resetAllData" class="btn-danger">
-              <TrashIcon class="w-4 h-4" />
+              <FontAwesomeIcon icon="trash" class="w-4 h-4" />
               重置所有数据
             </button>
           </div>
@@ -421,7 +421,7 @@
 
     <!-- 保存提示 -->
     <div v-if="showSaveNotification" class="save-notification">
-      <CheckCircleIcon class="w-5 h-5" />
+      <FontAwesomeIcon icon="check-circle" class="w-5 h-5" />
       <span>设置已保存</span>
     </div>
   </div>
@@ -429,25 +429,15 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
-import {
-  CogIcon,
-  CloudArrowUpIcon,
-  DocumentDuplicateIcon,
-  CommandLineIcon,
-  ArchiveBoxIcon,
-  InformationCircleIcon,
-  XMarkIcon,
-  ArrowDownTrayIcon,
-  ArrowUpTrayIcon,
-  ArrowPathIcon,
-  TrashIcon,
-  CheckCircleIcon,
-  CameraIcon
-} from '@heroicons/vue/24/outline'
+import { FontAwesomeIcon } from '@/utils/fontawesome'
 
 import type { Settings } from '@/types'
 import { settings as settingsManager } from '@/utils/storage'
 import { syncManager } from '@/utils/sync-manager'
+import { useI18n } from '@/utils/i18n'
+
+// 多语言支持
+const { t, initLanguage } = useI18n()
 
 // 响应式数据
 const activeTab = ref('general')
@@ -483,6 +473,9 @@ const settings = reactive<Settings>({
 
 // 组件挂载
 onMounted(async () => {
+  // 初始化多语言
+  await initLanguage()
+  
   await loadSettings()
   detectTheme()
   
@@ -500,11 +493,15 @@ watch(activeTab, async (newTab) => {
 })
 
 // 监听设置变化
-watch(settings, async (newSettings) => {
+watch(settings, async (newSettings, oldSettings) => {
   await saveSettings()
   // 实时应用主题变化
   if (newSettings.ui.theme) {
     detectTheme()
+  }
+  // 实时应用语言变化
+  if (newSettings.ui.language !== oldSettings?.ui.language) {
+    await initLanguage()
   }
 }, { deep: true })
 

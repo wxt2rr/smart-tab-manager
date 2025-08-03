@@ -20,7 +20,7 @@
           class="command-section"
         >
           <div class="section-header">
-            <component :is="section.icon" class="w-4 h-4" />
+            <FontAwesomeIcon :icon="section.icon" class="w-4 h-4" />
             <span>{{ section.title }}</span>
           </div>
           <div class="command-list">
@@ -35,7 +35,7 @@
               @mouseenter="setActiveIndex(sectionIndex, index)"
             >
               <div class="command-content">
-                <component :is="suggestion.icon" class="command-icon w-4 h-4" />
+                <FontAwesomeIcon :icon="suggestion.icon" class="command-icon w-4 h-4" />
                 <div class="command-info">
                   <span class="command-title">{{ suggestion.title }}</span>
                   <span v-if="suggestion.description" class="command-description">
@@ -52,7 +52,7 @@
       </div>
 
       <div v-else-if="searchQuery && filteredSuggestions.length === 0" class="no-results">
-        <ExclamationCircleIcon class="w-6 h-6 text-gray-400" />
+        <FontAwesomeIcon icon="exclamation-circle" class="w-6 h-6 text-gray-400" />
         <p>未找到匹配的命令</p>
         <p class="text-sm text-gray-500">尝试使用不同的关键词</p>
       </div>
@@ -99,19 +99,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-import {
-  MagnifyingGlassIcon,
-  ExclamationCircleIcon,
-  CogIcon,
-  FolderIcon,
-  DocumentDuplicateIcon,
-  CameraIcon,
-  ArrowPathIcon,
-  TrashIcon,
-  CloudArrowUpIcon,
-  PlusIcon,
-  BoltIcon
-} from '@heroicons/vue/24/outline'
+import { FontAwesomeIcon } from '@/utils/fontawesome'
 
 import type { SearchSuggestion } from '@/types'
 import { workspaceManager } from '@/utils/workspace-manager'
@@ -137,7 +125,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '创建新工作空间',
     description: '创建一个新的工作空间来组织标签页',
-    icon: PlusIcon,
+    icon: 'plus',
     category: 'workspace',
     action: async () => {
       const workspace = await workspaceManager.createWorkspace({
@@ -154,7 +142,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '打开工作空间',
     description: '选择并打开一个工作空间',
-    icon: FolderIcon,
+    icon: 'folder',
     category: 'workspace',
     action: () => {
       // 显示工作空间选择器
@@ -168,7 +156,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '检测重复页面',
     description: '扫描并找出重复的标签页',
-    icon: DocumentDuplicateIcon,
+    icon: 'copy',
     category: 'tab',
     shortcut: '⌘D',
     action: async () => {
@@ -181,7 +169,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '清理重复页面',
     description: '自动关闭重复的标签页',
-    icon: TrashIcon,
+    icon: 'trash',
     category: 'tab',
     action: async () => {
       const duplicates = await duplicateDetector.detectAllDuplicates()
@@ -195,7 +183,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '创建快照',
     description: '保存当前浏览器状态的快照',
-    icon: CameraIcon,
+    icon: 'camera',
     category: 'session',
     shortcut: '⌘S',
     action: async () => {
@@ -208,7 +196,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '恢复会话',
     description: '从之前的快照恢复浏览器状态',
-    icon: ArrowPathIcon,
+    icon: 'sync',
     category: 'session',
     shortcut: '⌘R',
     action: () => {
@@ -220,7 +208,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '立即同步',
     description: '立即创建自动同步快照',
-    icon: CloudArrowUpIcon,
+    icon: 'cloud-upload-alt',
     category: 'session',
     action: async () => {
       const snapshot = await syncManager.createSnapshot('auto')
@@ -234,7 +222,7 @@ const suggestions = ref<SearchSuggestion[]>([
     type: 'command',
     title: '打开设置',
     description: '配置插件选项和偏好',
-    icon: CogIcon,
+    icon: 'cog',
     category: 'settings',
     action: () => {
       chrome.runtime.openOptionsPage()
@@ -267,16 +255,16 @@ const groupedSuggestions = computed(() => {
   }, {} as Record<string, SearchSuggestion[]>)
 
   const categoryInfo = {
-    workspace: { title: '工作空间', icon: FolderIcon },
-    tab: { title: '标签页', icon: DocumentDuplicateIcon },
-    session: { title: '会话', icon: CameraIcon },
-    settings: { title: '设置', icon: CogIcon }
+    workspace: { title: '工作空间', icon: 'folder' },
+    tab: { title: '标签页', icon: 'copy' },
+    session: { title: '会话', icon: 'camera' },
+    settings: { title: '设置', icon: 'cog' }
   }
 
   return Object.entries(groups).map(([category, items], sectionIndex) => ({
     category,
     title: categoryInfo[category as keyof typeof categoryInfo]?.title || category,
-    icon: categoryInfo[category as keyof typeof categoryInfo]?.icon || BoltIcon,
+    icon: categoryInfo[category as keyof typeof categoryInfo]?.icon || 'bolt',
     items,
     sectionIndex
   }))

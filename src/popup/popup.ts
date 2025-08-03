@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import PopupApp from './PopupApp.vue'
 import '../styles/main.css'
+import '../utils/fontawesome'
 
 // 创建Vue应用
 const app = createApp(PopupApp)

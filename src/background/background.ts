@@ -2,6 +2,7 @@ import { duplicateDetector } from '@/utils/duplicate-detector'
 import { syncManager } from '@/utils/sync-manager'
 import { workspaceManager } from '@/utils/workspace-manager'
 import { migration } from '@/utils/storage'
+import { useI18n } from '@/utils/i18n'
 
 /**
  * 后台脚本主文件

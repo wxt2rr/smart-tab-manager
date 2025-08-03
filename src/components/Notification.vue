@@ -14,7 +14,7 @@
           ]"
         >
           <div class="notification-icon">
-            <component :is="iconComponent" class="w-5 h-5" />
+            <FontAwesomeIcon :icon="iconName" class="w-5 h-5" />
           </div>
           
           <div class="notification-content">
@@ -42,7 +42,7 @@
               class="notification-close-btn"
               @click="close"
             >
-              <XMarkIcon class="w-4 h-4" />
+              <FontAwesomeIcon icon="times" class="w-4 h-4" />
             </button>
           </div>
 
@@ -63,13 +63,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import {
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ExclamationCircleIcon,
-  InformationCircleIcon,
-  XMarkIcon
-} from '@heroicons/vue/24/outline'
+import { FontAwesomeIcon } from '@/utils/fontawesome'
 
 import type { Notification } from '@/types'
 
@@ -87,18 +81,18 @@ const emit = defineEmits<{
 const visible = ref(false)
 let autoCloseTimer: NodeJS.Timeout | null = null
 
-// 计算图标组件
-const iconComponent = computed(() => {
+// 计算图标名称
+const iconName = computed(() => {
   switch (props.notification.type) {
     case 'success':
-      return CheckCircleIcon
+      return 'check-circle'
     case 'warning':
-      return ExclamationTriangleIcon
+      return 'exclamation-triangle'
     case 'error':
-      return ExclamationCircleIcon
+      return 'exclamation-circle'
     case 'info':
     default:
-      return InformationCircleIcon
+      return 'info-circle'
   }
 })
 

@@ -9,8 +9,12 @@
         </div>
       </div>
       <div class="header-right">
-        <button @click="openSettings" class="icon-button settings-btn" title="设置">
-          <Cog6ToothIcon class="w-5 h-5" />
+        <button @click="openSettings" class="icon-button settings-btn" :title="t('popup.settings.title')">
+          <FontAwesomeIcon icon="cog" class="w-5 h-5" />
+        </button>
+        <button @click="handleLanguageToggle" class="icon-button language-btn" :title="t('popup.language.switch')">
+          <FontAwesomeIcon icon="globe" class="w-5 h-5" />
+          <span class="language-text">{{ currentLanguage === 'zh-CN' ? 'EN' : '中' }}</span>
         </button>
       </div>
     </header>
@@ -18,31 +22,31 @@
     <!-- 搜索栏 -->
     <div class="search-section">
       <div class="search-container" @click="openCommandPalette">
-        <MagnifyingGlassIcon class="search-icon w-4 h-4" />
+        <FontAwesomeIcon icon="search" class="search-icon w-4 h-4" />
         <input 
           type="text" 
-          placeholder="搜索或输入命令..."
+          :placeholder="t('popup.search.placeholder')"
           class="search-input"
           readonly
         />
-        <kbd class="search-shortcut">⌘K</kbd>
+        <kbd class="search-shortcut">{{ t('popup.search.shortcut') }}</kbd>
       </div>
     </div>
 
     <!-- 概览卡片 -->
     <div class="overview-section">
       <div class="section-title">
-        <ChartBarIcon class="w-4 h-4" />
-        <span>概览</span>
+        <FontAwesomeIcon icon="chart-bar" class="w-4 h-4" />
+        <span>{{ t('popup.overview.title') }}</span>
       </div>
       <div class="overview-card">
         <div class="stat-item">
           <span class="stat-value">{{ stats.totalTabs }}</span>
-          <span class="stat-label">个标签页</span>
+          <span class="stat-label">{{ t('popup.overview.totalTabs') }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value duplicate">{{ stats.duplicateTabs }}</span>
-          <span class="stat-label">重复</span>
+          <span class="stat-label">{{ t('popup.overview.duplicates') }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">⚡</span>
@@ -54,8 +58,8 @@
     <!-- 标签页管理 -->
     <div class="tabs-section">
       <div class="section-title">
-        <DocumentDuplicateIcon class="w-4 h-4" />
-        <span>标签页</span>
+        <FontAwesomeIcon icon="copy" class="w-4 h-4" />
+        <span>{{ t('popup.tabs.title') }}</span>
         <span class="section-count">{{ currentTabs.length }}</span>
         <button 
           class="tab-sort-btn"
@@ -124,14 +128,14 @@
                       @click.stop="handleDuplicate(tab)"
                       title="处理重复页面"
                     >
-                      <ExclamationTriangleIcon class="w-3 h-3" />
+                      <FontAwesomeIcon icon="exclamation-triangle" class="w-3 h-3" />
                     </button>
                     <button 
                       class="tab-action workspace"
                       @click.stop="addToWorkspace(tab)"
                       title="添加到分组"
                     >
-                      <PlusIcon class="w-3 h-3" />
+                      <FontAwesomeIcon icon="plus" class="w-3 h-3" />
                     </button>
                     <button 
                       class="tab-action close"
@@ -182,14 +186,14 @@
                   @click.stop="handleDuplicate(tab)"
                   title="处理重复页面"
                 >
-                  <ExclamationTriangleIcon class="w-3 h-3" />
+                  <FontAwesomeIcon icon="exclamation-triangle" class="w-3 h-3" />
                 </button>
                 <button 
                   class="tab-action workspace"
                   @click.stop="addToWorkspace(tab)"
                   title="添加到分组"
                 >
-                  <PlusIcon class="w-3 h-3" />
+                  <FontAwesomeIcon icon="plus" class="w-3 h-3" />
                 </button>
                 <button 
                   class="tab-action close"
@@ -204,12 +208,12 @@
         </div>
         
         <div v-if="sortedAndFilteredTabs.length === 0 && currentTabs.length > 0" class="empty-state">
-          <DocumentDuplicateIcon class="w-8 h-8 opacity-50" />
+          <FontAwesomeIcon icon="copy" class="w-8 h-8 opacity-50" />
           <span>没有符合条件的标签页</span>
         </div>
         
         <div v-if="currentTabs.length === 0" class="empty-state">
-          <DocumentDuplicateIcon class="w-8 h-8 opacity-50" />
+          <FontAwesomeIcon icon="copy" class="w-8 h-8 opacity-50" />
           <span>暂无标签页</span>
         </div>
       </div>
@@ -218,8 +222,8 @@
     <!-- 分组 -->
     <div class="workspaces-section">
       <div class="section-title">
-        <FolderIcon class="w-4 h-4" />
-        <span>分组</span>
+        <FontAwesomeIcon icon="folder" class="w-4 h-4" />
+        <span>{{ t('popup.workspaces.title') }}</span>
       </div>
       <div class="workspaces-list">
         <div 
@@ -250,20 +254,20 @@
               @click.stop="openWorkspace(workspace)"
               title="打开分组"
             >
-              <PlayIcon class="w-3 h-3" />
+              <FontAwesomeIcon icon="play" class="w-3 h-3" />
             </button>
             <button 
               class="workspace-action"
               @click.stop="editWorkspace(workspace)"
               title="编辑分组"
             >
-              <PencilIcon class="w-3 h-3" />
+              <FontAwesomeIcon icon="edit" class="w-3 h-3" />
             </button>
           </div>
         </div>
         <button class="add-workspace-btn" @click="createWorkspace">
-          <PlusIcon class="w-4 h-4" />
-          <span>新建分组</span>
+          <FontAwesomeIcon icon="plus" class="w-4 h-4" />
+          <span>{{ t('popup.workspaces.newWorkspace') }}</span>
         </button>
       </div>
     </div>
@@ -271,17 +275,17 @@
     <!-- 快速操作 -->
     <div class="tabs-actions-section">
       <div class="section-title">
-        <PlusIcon class="w-4 h-4" />
-        <span>标签页操作</span>
+        <FontAwesomeIcon icon="plus" class="w-4 h-4" />
+        <span>{{ t('popup.tabActions.title') }}</span>
       </div>
       <div class="tab-actions-grid">
         <button class="tab-action-btn" @click="createNewTab">
-          <PlusIcon class="w-4 h-4" />
-          <span>新标签页</span>
+          <FontAwesomeIcon icon="plus" class="w-4 h-4" />
+          <span>{{ t('popup.tabActions.newTab') }}</span>
         </button>
         <button class="tab-action-btn" @click="duplicateCurrentTab">
-          <DocumentDuplicateIcon class="w-4 h-4" />
-          <span>复制标签页</span>
+          <FontAwesomeIcon icon="copy" class="w-4 h-4" />
+          <span>{{ t('popup.tabActions.duplicateTab') }}</span>
         </button>
       </div>
     </div>
@@ -289,25 +293,25 @@
     <!-- 系统操作 -->
     <div class="actions-section">
       <div class="section-title">
-        <BoltIcon class="w-4 h-4" />
-        <span>系统操作</span>
+        <FontAwesomeIcon icon="bolt" class="w-4 h-4" />
+        <span>{{ t('popup.systemActions.title') }}</span>
       </div>
       <div class="actions-grid">
         <button class="action-btn" @click="syncNow">
-          <CloudArrowUpIcon class="w-4 h-4" />
-          <span>同步</span>
+          <FontAwesomeIcon icon="cloud-upload-alt" class="w-4 h-4" />
+          <span>{{ t('popup.systemActions.sync') }}</span>
         </button>
         <button class="action-btn" @click="createSnapshot">
-          <CameraIcon class="w-4 h-4" />
-          <span>快照</span>
+          <FontAwesomeIcon icon="camera" class="w-4 h-4" />
+          <span>{{ t('popup.systemActions.snapshot') }}</span>
         </button>
         <button class="action-btn" @click="restoreSession">
-          <ArrowPathIcon class="w-4 h-4" />
-          <span>恢复</span>
+          <FontAwesomeIcon icon="sync" class="w-4 h-4" />
+          <span>{{ t('popup.systemActions.restore') }}</span>
         </button>
         <button class="action-btn" @click="cleanDuplicates">
-          <TrashIcon class="w-4 h-4" />
-          <span>清理</span>
+          <FontAwesomeIcon icon="trash" class="w-4 h-4" />
+          <span>{{ t('popup.systemActions.cleanup') }}</span>
         </button>
       </div>
     </div>
@@ -400,7 +404,7 @@
             @click="restoreFromSnapshot(snapshot)"
           >
             <div class="snapshot-icon">
-              <CameraIcon class="w-4 h-4" />
+              <FontAwesomeIcon icon="camera" class="w-4 h-4" />
             </div>
             <div class="snapshot-info">
               <span class="snapshot-name">{{ snapshot.name }}</span>
@@ -429,22 +433,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, computed, nextTick } from 'vue'
-import {
-  MagnifyingGlassIcon,
-  ChartBarIcon,
-  DocumentDuplicateIcon,
-  FolderIcon,
-  BoltIcon,
-  Cog6ToothIcon,
-  PlayIcon,
-  PencilIcon,
-  PlusIcon,
-  ExclamationTriangleIcon,
-  CloudArrowUpIcon,
-  CameraIcon,
-  ArrowPathIcon,
-  TrashIcon
-} from '@heroicons/vue/24/outline'
+import { FontAwesomeIcon } from '@/utils/fontawesome'
 
 import CommandPalette from '@/components/CommandPalette.vue'
 import Notification from '@/components/Notification.vue'
@@ -453,6 +442,10 @@ import type { TabInfo, Workspace, Stats, Notification as NotificationType } from
 import { workspaceManager } from '@/utils/workspace-manager'
 import { syncManager } from '@/utils/sync-manager'
 import { duplicateDetector } from '@/utils/duplicate-detector'
+import { useI18n } from '@/utils/i18n'
+
+// 多语言支持
+const { t, currentLanguage, toggleLanguage, initLanguage } = useI18n()
 
 // 响应式数据
 const isDarkMode = ref(false)
@@ -490,16 +483,16 @@ const tabFilters = [
 
 // 计算属性  
 const formatTime = computed(() => (timestamp: number) => {
-  if (!timestamp || timestamp === 0) return '未同步'
+  if (!timestamp || timestamp === 0) return t('popup.overview.notSynced')
   
   const now = Date.now()
   const diff = now - timestamp
   
-  if (diff < 0) return '刚刚同步' // 防止未来时间
-  if (diff < 60000) return '刚刚同步'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-  return `${Math.floor(diff / 86400000)}天前`
+  if (diff < 0) return t('popup.overview.lastSync') // 防止未来时间
+  if (diff < 60000) return t('popup.overview.lastSync')
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} ${t('popup.overview.minutesAgo')}`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} ${t('popup.overview.hoursAgo')}`
+  return `${Math.floor(diff / 86400000)} ${t('popup.overview.daysAgo')}`
 })
 
 const formatSnapshotTime = computed(() => (timestamp: number) => {
@@ -614,8 +607,14 @@ let tabListeners: Array<() => void> = []
 onMounted(async () => {
   console.log('🚀 Popup mounting...')
   
+  // 初始化多语言
+  await initLanguage()
+  
   // 首先设置事件监听器
   setupEventListeners()
+  
+  // 监听语言变化消息
+  setupLanguageListener()
   
   // 然后加载数据
   await loadData()
@@ -1473,4 +1472,33 @@ function showNotification(type: NotificationType['type'], title: string, message
     notification.value = null
   }, duration)
 }
+
+// 语言切换处理
+async function handleLanguageToggle() {
+  try {
+    await toggleLanguage()
+    showNotification('success', t('notifications.languageChanged'))
+  } catch (error) {
+    console.error('Error toggling language:', error)
+    showNotification('error', 'Failed to switch language')
+  }
+}
+
+// 设置语言变化监听器
+function setupLanguageListener() {
+  try {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.type === 'LANGUAGE_CHANGED') {
+        console.log('Received language change message:', message.language)
+        // 更新当前语言状态（不需要保存，因为设置页面已经保存了）
+        currentLanguage.value = message.language
+        // 重新初始化语言
+        initLanguage()
+      }
+    })
+  } catch (error) {
+    console.log('Chrome runtime not available for language listener')
+  }
+}
 </script>
+
