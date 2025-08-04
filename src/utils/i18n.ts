@@ -374,8 +374,9 @@ export const messages = {
     
     // 通知消息
     notifications: {
-      duplicateDetected: '检测到重复页面',
+      duplicateDetected: '重复页面提醒',
       duplicateChoice: '发现重复页面！',
+      duplicateFoundMessage: '检测到重复页面！\n页面："{title}"\n与 {count} 个已打开的页面重复\n\n点击此通知查看选项',
       tabClosed: '标签页已关闭',
       workspaceOpened: '工作空间已打开',
       snapshotCreated: '快照已创建',
@@ -383,7 +384,6 @@ export const messages = {
       languageChanged: '语言已切换',
       // Popup相关通知
       duplicateFound: '发现重复页面',
-      duplicateFoundMessage: '找到 {count} 个重复页面',
       detectionFailed: '检测失败',
       detectionFailedMessage: '无法检测重复页面',
       noWorkspace: '没有分组',
@@ -406,7 +406,8 @@ export const messages = {
       question: '您希望如何处理？',
       keepTab: '保留此页面',
       closeTab: '关闭并切换',
-      background: '点击背景或按ESC键取消'
+      background: '点击背景或按ESC键取消',
+      badgeTitle: '检测到重复页面！与 {count} 个页面重复，点击查看选项'
     },
     
     // 后台脚本
@@ -786,8 +787,9 @@ export const messages = {
     
     // Notifications
     notifications: {
-      duplicateDetected: 'Duplicate page detected',
+      duplicateDetected: 'Duplicate Page Alert',
       duplicateChoice: 'Found duplicate pages!',
+      duplicateFoundMessage: 'Duplicate page detected!\nPage: "{title}"\nDuplicates with {count} open pages\n\nClick this notification to view options',
       tabClosed: 'Tab closed',
       workspaceOpened: 'Workspace opened',
       snapshotCreated: 'Snapshot created',
@@ -795,7 +797,6 @@ export const messages = {
       languageChanged: 'Language switched',
       // Popup相关通知
       duplicateFound: 'Duplicate page detected',
-      duplicateFoundMessage: 'Found {count} duplicate pages',
       detectionFailed: 'Detection failed',
       detectionFailedMessage: 'Failed to detect duplicate pages',
       noWorkspace: 'No workspace',
@@ -818,7 +819,8 @@ export const messages = {
       question: 'How would you like to handle this?',
       keepTab: 'Keep this page',
       closeTab: 'Close and switch',
-      background: 'Click background or press ESC to cancel'
+      background: 'Click background or press ESC to cancel',
+      badgeTitle: 'Duplicate page detected! Duplicates with {count} pages, click to view options'
     },
     
     // Background script
@@ -845,7 +847,45 @@ function updateTranslations() {
 }
 
 // 独立的翻译函数，可以在工具类中使用
-export function getTranslation(key: string, fallback?: string): string {
+export async function getTranslation(key: string, fallback?: string): Promise<string> {
+  try {
+    // 动态获取当前语言设置
+    let currentLang = 'zh-CN'
+    try {
+      // 尝试从storage获取语言设置
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        const { settings } = await chrome.storage.local.get('settings')
+        if (settings && settings.ui && settings.ui.language) {
+          currentLang = settings.ui.language
+        }
+      }
+    } catch (error) {
+      // 如果获取失败，使用默认语言
+      console.log('Failed to get language from storage, using default')
+    }
+    
+    // 获取对应语言的翻译文本
+    const translations = messages[currentLang as keyof typeof messages] || messages['zh-CN']
+    
+    const keys = key.split('.')
+    let result: any = translations
+    
+    for (const k of keys) {
+      if (result && typeof result === 'object' && k in result) {
+        result = result[k]
+      } else {
+        return fallback || key
+      }
+    }
+    
+    return typeof result === 'string' ? result : (fallback || key)
+  } catch (error) {
+    return fallback || key
+  }
+}
+
+// 同步版本的翻译函数，用于UI组件
+export function getTranslationSync(key: string, fallback?: string): string {
   try {
     const keys = key.split('.')
     let result: any = t

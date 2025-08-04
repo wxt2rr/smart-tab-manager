@@ -34,7 +34,7 @@ class BackgroundService {
       syncManager.startAutoSync()
 
       // 设置上下文菜单
-      this.setupContextMenus()
+      await this.setupContextMenus()
 
       // 设置定时任务
       this.setupPeriodicTasks()
@@ -58,7 +58,14 @@ class BackgroundService {
 
     // 窗口事件
     chrome.windows.onCreated.addListener(this.handleWindowCreated.bind(this))
-    chrome.windows.onRemoved.addListener(this.handleWindowRemoved.bind(this))
+    chrome.windows.onRemoved.addListener(async (windowId) => {
+      const windows = await chrome.windows.getAll()
+      if (windows.length === 0) {
+        // 所有窗口都关闭了，保存最后一次快照
+        const snapshotName = await getTranslation('background.closeSnapshot', '浏览器关闭前保存')
+        await syncManager.createSnapshot('auto', snapshotName)
+      }
+    })
 
     // 扩展启动事件
     chrome.runtime.onStartup.addListener(this.handleRuntimeStartup.bind(this))
@@ -445,7 +452,7 @@ class BackgroundService {
       console.log('Browser suspending, saving final snapshot...')
       
       // 创建最终快照
-      const snapshotName = getTranslation('background.closeSnapshot', '浏览器关闭前保存')
+      const snapshotName = await getTranslation('background.closeSnapshot', '浏览器关闭前保存')
       await syncManager.createSnapshot('auto', snapshotName)
       
       console.log('Final snapshot saved')
@@ -457,28 +464,28 @@ class BackgroundService {
   /**
    * 设置上下文菜单
    */
-  private setupContextMenus(): void {
+  private async setupContextMenus(): Promise<void> {
     try {
       // 清除现有菜单
-      chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.removeAll(async () => {
         // 添加到工作空间菜单
         chrome.contextMenus.create({
           id: 'add-to-workspace',
-          title: '添加到工作空间',
+          title: await getTranslation('popup.workspaces.addToWorkspace', '添加到工作空间'),
           contexts: ['page', 'tab']
         })
 
         // 检测重复页面菜单
         chrome.contextMenus.create({
           id: 'detect-duplicates',
-          title: '检测重复页面',
+          title: await getTranslation('popup.systemActions.cleanup', '检测重复页面'),
           contexts: ['page', 'tab']
         })
 
         // 创建快照菜单
         chrome.contextMenus.create({
           id: 'create-snapshot',
-          title: '创建会话快照',
+          title: await getTranslation('popup.systemActions.snapshot', '创建会话快照'),
           contexts: ['page', 'tab']
         })
 
@@ -629,7 +636,13 @@ class BackgroundService {
   private async showNativeConfirmDialog(tab: any, duplicates: any[]): Promise<boolean | null> {
     try {
       const duplicateList = duplicates.map(dup => `• ${dup.title || dup.url}`).join('\n')
-      const message = `⚠️ 检测到重复页面！\n\n当前页面与以下页面重复：\n${duplicateList}\n\n您希望如何处理？\n\n✅ 确定：保留此页面\n❌ 取消：关闭此页面并切换到现有页面`
+      const title = await getTranslation('duplicateDialog.title', '检测到重复页面！')
+      const message = await getTranslation('duplicateDialog.message', '当前页面与以下页面重复：')
+      const question = await getTranslation('duplicateDialog.question', '您希望如何处理？')
+      const keepText = await getTranslation('duplicateDialog.keepTab', '保留此页面')
+      const closeText = await getTranslation('duplicateDialog.closeTab', '关闭此页面并切换到现有页面')
+      
+      const fullMessage = `⚠️ ${title}\n\n${message}\n${duplicateList}\n\n${question}\n\n✅ 确定：${keepText}\n❌ 取消：${closeText}`
       
       const result = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -641,7 +654,7 @@ class BackgroundService {
             return null
           }
         },
-        args: [message]
+        args: [fullMessage]
       })
       
       if (result && result[0] && typeof result[0].result === 'boolean') {
@@ -669,7 +682,7 @@ class BackgroundService {
   /**
    * 在页面中显示重复对话框的函数
    */
-  private showDuplicateDialog(duplicates: any[], currentTab: any) {
+  private async showDuplicateDialog(duplicates: any[], currentTab: any) {
     console.log('🎯 showDuplicateDialog called with:', duplicates.length, 'duplicates')
     
     // 避免重复显示
@@ -727,6 +740,14 @@ class BackgroundService {
 
       const duplicateList = duplicates.map(dup => `• ${dup.title || dup.url}`).join('<br>')
       
+      // 异步获取翻译文本
+      const dialogTitle = await getTranslation('duplicateDialog.title', '检测到重复页面！')
+      const dialogMessage = await getTranslation('duplicateDialog.message', '当前页面与以下页面重复：')
+      const dialogQuestion = await getTranslation('duplicateDialog.question', '您希望如何处理？')
+      const keepTabText = await getTranslation('duplicateDialog.keepTab', '保留此页面')
+      const closeTabText = await getTranslation('duplicateDialog.closeTab', '关闭并切换')
+      const backgroundText = await getTranslation('duplicateDialog.background', '点击背景或按ESC键取消')
+      
       dialogBox.innerHTML = `
         <style>
           @keyframes slideIn {
@@ -739,14 +760,14 @@ class BackgroundService {
           }
         </style>
         <div style="font-size: 48px; margin-bottom: 16px; animation: bounce 1s infinite;">⚠️</div>
-        <h2 style="margin: 0 0 16px 0 !important; color: #ff3b30 !important; font-size: 20px !important; font-weight: bold !important;">检测到重复页面！</h2>
+        <h2 style="margin: 0 0 16px 0 !important; color: #ff3b30 !important; font-size: 20px !important; font-weight: bold !important;">${dialogTitle}</h2>
         <p style="margin: 0 0 16px 0 !important; color: #333 !important; line-height: 1.5 !important; font-size: 14px !important;">
-          当前页面与以下页面重复：
+          ${dialogMessage}
         </p>
         <div style="background: #f5f5f5 !important; padding: 12px !important; border-radius: 8px !important; margin: 16px 0 !important; text-align: left !important; max-height: 120px !important; overflow-y: auto !important; border: 1px solid #ddd !important;">
           ${duplicateList}
         </div>
-        <p style="margin: 16px 0 !important; color: #666 !important; font-size: 14px !important; font-weight: 500 !important;">您希望如何处理？</p>
+        <p style="margin: 16px 0 !important; color: #666 !important; font-size: 14px !important; font-weight: 500 !important;">${dialogQuestion}</p>
         <div style="display: flex !important; gap: 12px !important; justify-content: center !important;">
           <button id="keep-tab-btn" class="dialog-btn" style="
             background: #007aff !important;
@@ -758,7 +779,7 @@ class BackgroundService {
             font-size: 16px !important;
             font-weight: 500 !important;
             transition: all 0.2s ease !important;
-          ">✅ 保留此页面</button>
+          ">✅ ${keepTabText}</button>
           <button id="close-tab-btn" class="dialog-btn" style="
             background: #ff3b30 !important;
             color: white !important;
@@ -769,9 +790,9 @@ class BackgroundService {
             font-size: 16px !important;
             font-weight: 500 !important;
             transition: all 0.2s ease !important;
-          ">❌ 关闭并切换</button>
+          ">❌ ${closeTabText}</button>
         </div>
-        <p style="margin-top: 16px !important; font-size: 12px !important; color: #999 !important;">点击背景或按ESC键取消</p>
+        <p style="margin-top: 16px !important; font-size: 12px !important; color: #999 !important;">${backgroundText}</p>
       `
 
       // 确保添加到最顶层
@@ -856,9 +877,14 @@ class BackgroundService {
       // 降级到简单的confirm对话框
       try {
         const duplicateList = duplicates.map(dup => `• ${dup.title || dup.url}`).join('\n')
-        const message = `⚠️ 检测到重复页面！\n\n当前页面与以下页面重复：\n${duplicateList}\n\n您希望如何处理？`
+        const title = await getTranslation('duplicateDialog.title', '检测到重复页面！')
+        const message = await getTranslation('duplicateDialog.message', '当前页面与以下页面重复：')
+        const question = await getTranslation('duplicateDialog.question', '您希望如何处理？')
+        const keepText = await getTranslation('duplicateDialog.keepTab', '保留此页面')
+        const closeText = await getTranslation('duplicateDialog.closeTab', '关闭此页面并切换到现有页面')
         
-        const userChoice = confirm(message + '\n\n✅ 点击"确定"：保留此页面\n❌ 点击"取消"：关闭此页面并切换到现有页面')
+        const confirmMessage = `⚠️ ${title}\n\n${message}\n${duplicateList}\n\n${question}`
+        const userChoice = confirm(confirmMessage + `\n\n✅ 点击"确定"：${keepText}\n❌ 点击"取消"：${closeText}`)
         console.log('👤 Fallback confirm result:', userChoice)
         
         if (!userChoice) {
@@ -890,14 +916,20 @@ class BackgroundService {
 
       // 检查notifications API是否可用
       if (chrome.notifications) {
+        const title = await getTranslation('notifications.duplicateDetected', '⚠️ Smart Tab Manager - 重复页面提醒')
+        const messageTemplate = await getTranslation('notifications.duplicateFoundMessage', '检测到重复页面！\n页面："{title}"\n与 {count} 个已打开的页面重复\n\n点击此通知查看选项')
+        const message = messageTemplate
+          .replace('{title}', tab.title || tab.url)
+          .replace('{count}', duplicates.length.toString())
+        
         const notificationOptions = {
           type: 'basic' as const,
-          title: '⚠️ Smart Tab Manager - 重复页面提醒',
-          message: `检测到重复页面！\n页面："${tab.title || tab.url}"\n与 ${duplicates.length} 个已打开的页面重复\n\n点击此通知查看选项`,
+          title: `⚠️ Smart Tab Manager - ${title}`,
+          message: message,
           iconUrl: chrome.runtime.getURL('icons/icon-48.png'),
           buttons: [
-            { title: '🔄 切换到现有页面' },
-            { title: '✅ 保留当前页面' }
+            { title: `🔄 ${await getTranslation('duplicateDialog.closeTab', '切换到现有页面')}` },
+            { title: `✅ ${await getTranslation('duplicateDialog.keepTab', '保留当前页面')}` }
           ],
           requireInteraction: true // 需要用户交互才会消失
         }
@@ -977,7 +1009,7 @@ class BackgroundService {
           })
           
           await chrome.action.setTitle({
-            title: `检测到重复页面！与 ${duplicates.length} 个页面重复，点击查看选项`,
+            title: (await getTranslation('duplicateDialog.badgeTitle', '检测到重复页面！与 {count} 个页面重复，点击查看选项')).replace('{count}', duplicates.length.toString()),
             tabId: tab.id
           })
           
@@ -997,7 +1029,9 @@ class BackgroundService {
           payload: {
             tab,
             duplicates,
-            message: `检测到重复页面！"${tab.title || tab.url}" 与 ${duplicates.length} 个已打开的页面重复`
+            message: (await getTranslation('notifications.duplicateFoundMessage', '检测到重复页面！"{title}" 与 {count} 个已打开的页面重复'))
+              .replace('{title}', tab.title || tab.url)
+              .replace('{count}', duplicates.length.toString())
           }
         })
         console.log('📢 Fallback message broadcasted to popup')
