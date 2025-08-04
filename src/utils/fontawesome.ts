@@ -22,7 +22,13 @@ import {
   faSync,
   faTrash,
   faBolt,
-  faExternalLinkAlt
+  faExternalLinkAlt,
+  faCog,
+  faTerminal,
+  faArchive,
+  faInfoCircle,
+  faDownload,
+  faUpload
 } from '@fortawesome/free-solid-svg-icons'
 
 // 注册图标到库中
@@ -46,7 +52,13 @@ library.add(
   faSync,
   faTrash,
   faBolt,
-  faExternalLinkAlt
+  faExternalLinkAlt,
+  faCog,
+  faTerminal,
+  faArchive,
+  faInfoCircle,
+  faDownload,
+  faUpload
 )
 
 // 导出 FontAwesome 组件
@@ -74,5 +86,11 @@ export const iconMap: Record<string, string> = {
   'ArrowPathIcon': 'sync',
   'TrashIcon': 'trash',
   'BoltIcon': 'bolt',
-  'ArrowTopRightOnSquareIcon': 'external-link-alt'
+  'ArrowTopRightOnSquareIcon': 'external-link-alt',
+  'CogIcon': 'cog',
+  'TerminalIcon': 'terminal',
+  'ArchiveBoxIcon': 'archive',
+  'InformationCircleIcon': 'info-circle',
+  'ArrowDownTrayIcon': 'download',
+  'ArrowUpTrayIcon': 'upload'
 } 

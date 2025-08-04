@@ -1,5 +1,14 @@
 # ⚡ Smart Tab Manager
 
+<!-- Language Navigation -->
+<div align="center">
+
+**🌍 Language / 语言**
+
+[English](./README_EN.md) | [简体中文](./README.md)
+
+</div>
+
 > 一个浏览器标签页管理插件，解决您不断打开重复Tab的习惯！
 
 <div align="center">
