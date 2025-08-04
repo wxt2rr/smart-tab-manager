@@ -199,13 +199,13 @@
 
           <!-- 检测规则设置 -->
           <div class="setting-group" v-if="settings.duplicateDetection.enabled">
-            <h3>检测规则</h3>
-            <p class="setting-description">选择要启用的重复检测规则</p>
+            <h3>{{ t('options.duplicates.rules.title') }}</h3>
+            <p class="setting-description">{{ t('options.duplicates.rules.description') }}</p>
             
             <div class="setting-item">
               <label class="setting-label">
-                <span>完全匹配</span>
-                <span class="setting-description">URL 完全相同时判定为重复</span>
+                <span>{{ t('options.duplicates.rules.exactMatch') }}</span>
+                <span class="setting-description">{{ t('options.duplicates.rules.exactMatchDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -218,8 +218,8 @@
 
             <div class="setting-item">
               <label class="setting-label">
-                <span>域名+路径匹配</span>
-                <span class="setting-description">域名和路径相同时判定为重复（忽略查询参数）</span>
+                <span>{{ t('options.duplicates.rules.domainMatch') }}</span>
+                <span class="setting-description">{{ t('options.duplicates.rules.domainMatchDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -232,8 +232,8 @@
 
             <div class="setting-item">
               <label class="setting-label">
-                <span>标题相似度匹配</span>
-                <span class="setting-description">页面标题相似度超过阈值时判定为重复</span>
+                <span>{{ t('options.duplicates.rules.titleMatch') }}</span>
+                <span class="setting-description">{{ t('options.duplicates.rules.titleMatchDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -246,8 +246,8 @@
 
             <div class="setting-item">
               <label class="setting-label">
-                <span>智能综合匹配</span>
-                <span class="setting-description">综合 URL 结构和标题相似度进行智能判断</span>
+                <span>{{ t('options.duplicates.rules.smartMatch') }}</span>
+                <span class="setting-description">{{ t('options.duplicates.rules.smartMatchDesc') }}</span>
               </label>
               <label class="toggle">
                 <input 
@@ -261,8 +261,8 @@
             <!-- 相似度阈值设置 -->
             <div class="setting-item" v-if="settings.duplicateDetection.rules.titleMatch || settings.duplicateDetection.rules.smartMatch">
               <label class="setting-label">
-                <span>相似度阈值</span>
-                <span class="setting-description">设置相似度判断的阈值 (0.1 - 1.0)</span>
+                <span>{{ t('options.duplicates.threshold.title') }}</span>
+                <span class="setting-description">{{ t('options.duplicates.threshold.description') }}</span>
               </label>
               <div class="threshold-control">
                 <input 
@@ -311,38 +311,38 @@
 
         <!-- 快捷键设置 -->
         <div v-if="activeTab === 'shortcuts'" class="settings-panel">
-          <h2>快捷键</h2>
-          <p class="panel-description">自定义快捷键组合</p>
+          <h2>{{ t('options.shortcuts.title') }}</h2>
+          <p class="panel-description">{{ t('options.shortcuts.description') }}</p>
           
           <div class="shortcuts-list">
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <span class="shortcut-name">打开命令面板</span>
-                <span class="shortcut-description">快速访问所有功能</span>
+                <span class="shortcut-name">{{ t('options.shortcuts.commandPalette') }}</span>
+                <span class="shortcut-description">{{ t('options.shortcuts.commandPaletteDesc') }}</span>
               </div>
               <kbd class="shortcut-key">⌘K</kbd>
             </div>
             
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <span class="shortcut-name">检测重复页面</span>
-                <span class="shortcut-description">扫描当前所有标签页</span>
+                <span class="shortcut-name">{{ t('options.shortcuts.detectDuplicates') }}</span>
+                <span class="shortcut-description">{{ t('options.shortcuts.detectDuplicatesDesc') }}</span>
               </div>
               <kbd class="shortcut-key">⌘D</kbd>
             </div>
             
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <span class="shortcut-name">创建快照</span>
-                <span class="shortcut-description">保存当前浏览器状态</span>
+                <span class="shortcut-name">{{ t('options.shortcuts.createSnapshot') }}</span>
+                <span class="shortcut-description">{{ t('options.shortcuts.createSnapshotDesc') }}</span>
               </div>
               <kbd class="shortcut-key">⌘S</kbd>
             </div>
             
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <span class="shortcut-name">恢复会话</span>
-                <span class="shortcut-description">从历史快照恢复</span>
+                <span class="shortcut-name">{{ t('options.shortcuts.restoreSession') }}</span>
+                <span class="shortcut-description">{{ t('options.shortcuts.restoreSessionDesc') }}</span>
               </div>
               <kbd class="shortcut-key">⌘R</kbd>
             </div>
@@ -351,41 +351,41 @@
 
         <!-- 快照记录 -->
         <div v-if="activeTab === 'snapshots'" class="settings-panel">
-          <h2>快照记录</h2>
-          <p class="panel-description">查看和管理所有保存的会话快照</p>
+          <h2>{{ t('options.snapshots.title') }}</h2>
+          <p class="panel-description">{{ t('options.snapshots.description') }}</p>
           
           <div class="snapshots-container">
             <div class="snapshots-header">
               <div class="snapshots-stats">
                 <span class="stat-item">
-                  <strong>{{ snapshots.length }}</strong> 个快照
+                  <strong>{{ snapshots.length }}</strong> {{ t('options.snapshots.count') }}
                 </span>
                 <span class="stat-item" v-if="snapshots.length > 0">
-                  最新：{{ formatSnapshotDate(snapshots[0]?.timestamp) }}
+                  {{ t('options.snapshots.latest') }}：{{ formatSnapshotDate(snapshots[0]?.timestamp) }}
                 </span>
               </div>
               <button @click="loadSnapshots" class="btn-secondary">
                 <FontAwesomeIcon icon="sync" class="w-4 h-4" />
-                刷新
+                {{ t('options.snapshots.refresh') }}
               </button>
             </div>
 
             <div v-if="snapshotsLoading" class="snapshots-loading">
-              <span>加载中...</span>
+              <span>{{ t('options.snapshots.loading') }}</span>
             </div>
 
             <div v-else-if="snapshots.length === 0" class="no-snapshots">
               <FontAwesomeIcon icon="camera" class="w-12 h-12 text-gray-300" />
-              <h3>暂无快照</h3>
-              <p>您还没有创建任何会话快照</p>
+              <h3>{{ t('options.snapshots.noSnapshots.title') }}</h3>
+              <p>{{ t('options.snapshots.noSnapshots.description') }}</p>
               <button @click="createSnapshot" class="btn-primary">
                 <FontAwesomeIcon icon="camera" class="w-4 h-4" />
-                创建快照
+                {{ t('options.snapshots.create') }}
               </button>
             </div>
 
             <div v-else class="snapshots-list">
-              <div 
+              <div
                 v-for="snapshot in snapshots" 
                 :key="snapshot.id"
                 class="snapshot-card"
@@ -399,10 +399,10 @@
                     <span class="snapshot-date">{{ formatSnapshotDate(snapshot.timestamp) }}</span>
                   </div>
                   <div class="snapshot-actions">
-                    <button @click="restoreSnapshot(snapshot)" class="btn-restore" title="恢复快照">
+                    <button @click="restoreSnapshot(snapshot)" class="btn-restore" :title="t('options.snapshots.tooltips.restore')">
                       <FontAwesomeIcon icon="sync" class="w-4 h-4" />
                     </button>
-                    <button @click="deleteSnapshot(snapshot)" class="btn-delete" title="删除快照">
+                    <button @click="deleteSnapshot(snapshot)" class="btn-delete" :title="t('options.snapshots.tooltips.delete')">
                       <FontAwesomeIcon icon="trash" class="w-4 h-4" />
                     </button>
                   </div>
@@ -410,17 +410,17 @@
                 
                 <div class="snapshot-details">
                   <div class="detail-item">
-                    <span class="detail-label">标签页数量：</span>
-                    <span class="detail-value">{{ snapshot.metadata?.totalTabs || 0 }} 个</span>
+                    <span class="detail-label">{{ t('options.snapshots.details.tabsCount') }}：</span>
+                    <span class="detail-value">{{ snapshot.metadata?.totalTabs || 0 }} {{ t('options.snapshots.tabs') }}</span>
                   </div>
                   <div class="detail-item">
-                    <span class="detail-label">窗口数量：</span>
-                    <span class="detail-value">{{ snapshot.metadata?.totalWindows || 0 }} 个</span>
+                    <span class="detail-label">{{ t('options.snapshots.details.windowsCount') }}：</span>
+                    <span class="detail-value">{{ snapshot.metadata?.totalWindows || 0 }} {{ t('options.snapshots.windows') }}</span>
                   </div>
                   <div class="detail-item">
-                    <span class="detail-label">类型：</span>
+                    <span class="detail-label">{{ t('options.snapshots.details.type') }}：</span>
                     <span class="detail-value snapshot-type" :class="snapshot.type">
-                      {{ snapshot.type === 'manual' ? '手动创建' : '自动创建' }}
+                      {{ snapshot.type === 'manual' ? t('options.snapshots.details.manual') : t('options.snapshots.details.auto') }}
                     </span>
                   </div>
                 </div>
@@ -431,20 +431,20 @@
 
         <!-- 备份还原 -->
         <div v-if="activeTab === 'backup'" class="settings-panel">
-          <h2>备份还原</h2>
+          <h2>{{ t('options.backup.title') }}</h2>
           
           <div class="backup-section">
-            <h3>导出数据</h3>
-            <p class="setting-description">导出所有设置、工作空间和快照数据</p>
+            <h3>{{ t('options.backup.export.title') }}</h3>
+            <p class="setting-description">{{ t('options.backup.export.description') }}</p>
             <button @click="exportData" class="btn-primary">
               <FontAwesomeIcon icon="download" class="w-4 h-4" />
-              导出数据
+              {{ t('options.backup.export.button') }}
             </button>
           </div>
 
           <div class="backup-section">
-            <h3>导入数据</h3>
-            <p class="setting-description">从备份文件恢复数据</p>
+            <h3>{{ t('options.backup.import.title') }}</h3>
+            <p class="setting-description">{{ t('options.backup.import.description') }}</p>
             <input 
               type="file" 
               ref="importInput"
@@ -454,45 +454,45 @@
             />
             <button @click="$refs.importInput?.click()" class="btn-secondary">
               <FontAwesomeIcon icon="upload" class="w-4 h-4" />
-              选择文件
+              {{ t('options.backup.import.button') }}
             </button>
           </div>
 
           <div class="backup-section danger-zone">
-            <h3>重置数据</h3>
-            <p class="setting-description">清除所有数据并恢复默认设置</p>
+            <h3>{{ t('options.backup.reset.title') }}</h3>
+            <p class="setting-description">{{ t('options.backup.reset.description') }}</p>
             <button @click="resetAllData" class="btn-danger">
               <FontAwesomeIcon icon="trash" class="w-4 h-4" />
-              重置所有数据
+              {{ t('options.backup.reset.button') }}
             </button>
           </div>
         </div>
 
         <!-- 关于插件 -->
         <div v-if="activeTab === 'about'" class="settings-panel">
-          <h2>关于 Smart Tab Manager</h2>
+          <h2>{{ t('options.about.pageTitle') }}</h2>
           
           <div class="about-info">
             <div class="about-section">
-              <h3>版本信息</h3>
-              <p><strong>版本:</strong> 1.0.0</p>
-              <p><strong>构建日期:</strong> 2024年1月20日</p>
-              <p><strong>开发团队:</strong> Smart Tab Manager Team</p>
+              <h3>{{ t('options.about.version.title') }}</h3>
+              <p><strong>{{ t('options.about.version.version') }}:</strong> {{ t('options.about.values.versionNumber') }}</p>
+              <p><strong>{{ t('options.about.version.buildDate') }}:</strong> {{ t('options.about.values.buildDateValue') }}</p>
+              <p><strong>{{ t('options.about.version.team') }}:</strong> {{ t('options.about.values.teamName') }}</p>
             </div>
 
             <div class="about-section">
-              <h3>开源协议</h3>
-              <p>本项目基于 MIT 协议开源</p>
+              <h3>{{ t('options.about.license.title') }}</h3>
+              <p>{{ t('options.about.license.description') }}</p>
               <a href="https://github.com/smart-tab-manager/smart-tab-manager" target="_blank" class="external-link">
-                查看源码
+                {{ t('options.about.license.viewSource') }}
               </a>
             </div>
 
             <div class="about-section">
-              <h3>反馈与支持</h3>
-              <p>如果您遇到问题或有功能建议，请访问我们的 GitHub 项目页面</p>
+              <h3>{{ t('options.about.support.title') }}</h3>
+              <p>{{ t('options.about.support.description') }}</p>
               <a href="https://github.com/smart-tab-manager/smart-tab-manager/issues" target="_blank" class="external-link">
-                报告问题
+                {{ t('options.about.support.reportIssue') }}
               </a>
             </div>
           </div>
@@ -503,7 +503,7 @@
     <!-- 保存提示 -->
     <div v-if="showSaveNotification" class="save-notification">
       <FontAwesomeIcon icon="check-circle" class="w-5 h-5" />
-      <span>设置已保存</span>
+      <span>{{ t('notifications.settingsSaved') }}</span>
     </div>
   </div>
 </template>
@@ -719,12 +719,12 @@ async function importData(event: Event) {
     }
   } catch (error) {
     console.error('Error importing data:', error)
-    alert('导入失败，请检查文件格式')
+    alert(t('options.backup.import.error'))
   }
 }
 
 async function resetAllData() {
-  if (confirm('确定要重置所有数据吗？此操作不可撤销。')) {
+  if (confirm(t('options.backup.reset.confirm'))) {
     try {
       await settingsManager.resetSettings()
       await loadSettings()
@@ -760,30 +760,30 @@ async function createSnapshot() {
     }
   } catch (error) {
     console.error('Error creating snapshot:', error)
-    alert('创建快照失败')
+    alert(t('options.snapshots.messages.createFailed'))
   }
 }
 
 async function restoreSnapshot(snapshot: any) {
-  if (confirm(`确定要恢复快照 "${snapshot.name}" 吗？这将关闭当前所有标签页并打开快照中的标签页。`)) {
+  if (confirm(t('options.snapshots.messages.restoreConfirm').replace('{name}', snapshot.name))) {
     try {
       await syncManager.restoreSnapshot(snapshot.id)
-      alert('快照恢复成功')
+      alert(t('options.snapshots.messages.restoreSuccess'))
     } catch (error) {
       console.error('Error restoring snapshot:', error)
-      alert('恢复快照失败')
+      alert(t('options.snapshots.messages.restoreFailed'))
     }
   }
 }
 
 async function deleteSnapshot(snapshot: any) {
-  if (confirm(`确定要删除快照 "${snapshot.name}" 吗？此操作不可撤销。`)) {
+  if (confirm(t('options.snapshots.messages.deleteConfirm').replace('{name}', snapshot.name))) {
     try {
       await syncManager.deleteSnapshot(snapshot.id)
       await loadSnapshots() // 刷新列表
     } catch (error) {
       console.error('Error deleting snapshot:', error)
-      alert('删除快照失败')
+      alert(t('options.snapshots.messages.deleteFailed'))
     }
   }
 }

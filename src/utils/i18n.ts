@@ -121,6 +121,22 @@ export const messages = {
         title: '重复检测',
         enable: '启用重复检测',
         enableDesc: '自动检测并提醒重复的标签页',
+        rules: {
+          title: '检测规则',
+          description: '选择要启用的重复检测规则',
+          exactMatch: '完全匹配',
+          exactMatchDesc: 'URL 完全相同时判定为重复',
+          domainMatch: '域名+路径匹配',
+          domainMatchDesc: '域名和路径相同时判定为重复（忽略查询参数）',
+          titleMatch: '标题相似度匹配',
+          titleMatchDesc: '页面标题相似度超过阈值时判定为重复',
+          smartMatch: '智能综合匹配',
+          smartMatchDesc: '综合 URL 结构和标题相似度进行智能判断'
+        },
+        threshold: {
+          title: '相似度阈值',
+          description: '设置相似度判断的阈值 (0.1 - 1.0)'
+        },
         whitelist: '白名单',
         whitelistDesc: '添加不需要检测重复的网站',
         whitelistPlaceholder: '输入域名，例如：example.com'
@@ -141,41 +157,85 @@ export const messages = {
         title: '快照记录',
         description: '查看和管理所有保存的会话快照',
         count: '个快照',
+        latest: '最新',
+        refresh: '刷新',
+        loading: '加载中...',
+        noSnapshots: {
+          title: '暂无快照',
+          description: '您还没有创建任何会话快照'
+        },
         create: '创建快照',
         restore: '恢复',
         delete: '删除',
         export: '导出',
         time: '时间',
         tabs: '标签页',
-        windows: '窗口'
+        windows: '窗口',
+        details: {
+          tabsCount: '标签页数量',
+          windowsCount: '窗口数量',
+          type: '类型',
+          manual: '手动创建',
+          auto: '自动创建'
+        },
+        tooltips: {
+          restore: '恢复快照',
+          delete: '删除快照'
+        },
+        messages: {
+          createSuccess: '快照创建成功',
+          createFailed: '创建快照失败',
+          restoreSuccess: '快照恢复成功',
+          restoreFailed: '恢复快照失败',
+          deleteFailed: '删除快照失败',
+          restoreConfirm: '确定要恢复快照 "{name}" 吗？这将关闭当前所有标签页并打开快照中的标签页。',
+          deleteConfirm: '确定要删除快照 "{name}" 吗？此操作不可撤销。'
+        }
       },
       backup: {
         title: '备份还原',
         export: {
           title: '导出数据',
-          description: '导出所有设置和数据到文件',
-          button: '导出设置'
+          description: '导出所有设置、工作空间和快照数据',
+          button: '导出数据'
         },
         import: {
           title: '导入数据',
-          description: '从文件导入设置和数据',
-          button: '选择文件'
+          description: '从备份文件恢复数据',
+          button: '选择文件',
+          error: '导入失败，请检查文件格式'
         },
         reset: {
-          title: '重置设置',
-          description: '将所有设置恢复为默认值',
-          button: '重置设置',
-          warning: '此操作将清除所有自定义设置，是否继续？'
+          title: '重置数据',
+          description: '清除所有数据并恢复默认设置',
+          button: '重置所有数据',
+          confirm: '确定要重置所有数据吗？此操作不可撤销。'
         }
       },
       about: {
         title: '关于插件',
-        version: '版本',
-        description: '现代化的浏览器标签页管理工具',
-        developer: '开发者',
-        license: 'MIT 许可证',
-        support: '技术支持',
-        github: 'GitHub 仓库'
+        pageTitle: '关于 Smart Tab Manager',
+        version: {
+          title: '版本信息',
+          version: '版本',
+          buildDate: '构建日期',
+          team: '开发团队'
+        },
+        license: {
+          title: '开源协议',
+          description: '本项目基于 MIT 协议开源',
+          viewSource: '查看源码'
+        },
+        support: {
+          title: '反馈与支持',
+          description: '如果您遇到问题或有功能建议，请访问我们的 GitHub 项目页面',
+          reportIssue: '报告问题'
+        },
+        values: {
+          versionNumber: '1.0.0',
+          buildDateValue: '2024年1月20日',
+          teamName: 'Smart Tab Manager Team'
+        }
       }
     },
     
@@ -319,6 +379,22 @@ export const messages = {
         title: 'Duplicate Detection',
         enable: 'Enable duplicate detection',
         enableDesc: 'Automatically detect and remind duplicate tabs',
+        rules: {
+          title: 'Detection Rules',
+          description: 'Select which duplicate detection rules to enable',
+          exactMatch: 'Exact Match',
+          exactMatchDesc: 'Determine as duplicate when URL is exactly the same',
+          domainMatch: 'Domain + Path Match',
+          domainMatchDesc: 'Determine as duplicate when domain and path are the same (ignoring query parameters)',
+          titleMatch: 'Title Similarity Match',
+          titleMatchDesc: 'Determine as duplicate when page title similarity exceeds threshold',
+          smartMatch: 'Smart Comprehensive Match',
+          smartMatchDesc: 'Intelligently determine based on URL structure and title similarity'
+        },
+        threshold: {
+          title: 'Similarity Threshold',
+          description: 'Set the similarity threshold for judgment (0.1 - 1.0)'
+        },
         whitelist: 'Whitelist',
         whitelistDesc: 'Add websites that do not need duplicate detection',
         whitelistPlaceholder: 'Enter domain, e.g.: example.com'
@@ -339,41 +415,85 @@ export const messages = {
         title: 'Snapshots',
         description: 'View and manage all saved session snapshots',
         count: 'snapshots',
+        latest: 'Latest',
+        refresh: 'Refresh',
+        loading: 'Loading...',
+        noSnapshots: {
+          title: 'No Snapshots',
+          description: 'You have not created any session snapshots yet'
+        },
         create: 'Create Snapshot',
         restore: 'Restore',
         delete: 'Delete',
         export: 'Export',
         time: 'Time',
         tabs: 'Tabs',
-        windows: 'Windows'
+        windows: 'Windows',
+        details: {
+          tabsCount: 'Tabs Count',
+          windowsCount: 'Windows Count',
+          type: 'Type',
+          manual: 'Manual',
+          auto: 'Auto'
+        },
+        tooltips: {
+          restore: 'Restore Snapshot',
+          delete: 'Delete Snapshot'
+        },
+        messages: {
+          createSuccess: 'Snapshot created successfully',
+          createFailed: 'Failed to create snapshot',
+          restoreSuccess: 'Snapshot restored successfully',
+          restoreFailed: 'Failed to restore snapshot',
+          deleteFailed: 'Failed to delete snapshot',
+          restoreConfirm: 'Are you sure you want to restore snapshot "{name}"? This will close all current tabs and open tabs from the snapshot.',
+          deleteConfirm: 'Are you sure you want to delete snapshot "{name}"? This action cannot be undone.'
+        }
       },
       backup: {
         title: 'Backup & Restore',
         export: {
           title: 'Export Data',
-          description: 'Export all settings and data to file',
-          button: 'Export Settings'
+          description: 'Export all settings, workspaces and snapshot data',
+          button: 'Export Data'
         },
         import: {
           title: 'Import Data',
-          description: 'Import settings and data from file',
-          button: 'Choose File'
+          description: 'Restore data from backup file',
+          button: 'Choose File',
+          error: 'Import failed, please check file format'
         },
         reset: {
-          title: 'Reset Settings',
-          description: 'Restore all settings to default values',
-          button: 'Reset Settings',
-          warning: 'This will clear all custom settings. Continue?'
+          title: 'Reset Data',
+          description: 'Clear all data and restore default settings',
+          button: 'Reset All Data',
+          confirm: 'Are you sure you want to reset all data? This action cannot be undone.'
         }
       },
       about: {
         title: 'About Plugin',
-        version: 'Version',
-        description: 'Modern browser tab management tool',
-        developer: 'Developer',
-        license: 'MIT License',
-        support: 'Support',
-        github: 'GitHub Repository'
+        pageTitle: 'About Smart Tab Manager',
+        version: {
+          title: 'Version Information',
+          version: 'Version',
+          buildDate: 'Build Date',
+          team: 'Development Team'
+        },
+        license: {
+          title: 'Open Source License',
+          description: 'This project is open source under the MIT license',
+          viewSource: 'View Source'
+        },
+        support: {
+          title: 'Feedback & Support',
+          description: 'If you encounter any issues or have feature suggestions, please visit our GitHub project page',
+          reportIssue: 'Report an Issue'
+        },
+        values: {
+          versionNumber: '1.0.0',
+          buildDateValue: 'January 20, 2024',
+          teamName: 'Smart Tab Manager Team'
+        }
       }
     },
     
