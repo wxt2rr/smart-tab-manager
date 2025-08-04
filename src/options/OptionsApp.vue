@@ -195,7 +195,87 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
+          </div>
 
+          <!-- 检测规则设置 -->
+          <div class="setting-group" v-if="settings.duplicateDetection.enabled">
+            <h3>检测规则</h3>
+            <p class="setting-description">选择要启用的重复检测规则</p>
+            
+            <div class="setting-item">
+              <label class="setting-label">
+                <span>完全匹配</span>
+                <span class="setting-description">URL 完全相同时判定为重复</span>
+              </label>
+              <label class="toggle">
+                <input 
+                  type="checkbox" 
+                  v-model="settings.duplicateDetection.rules.exactMatch"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <label class="setting-label">
+                <span>域名+路径匹配</span>
+                <span class="setting-description">域名和路径相同时判定为重复（忽略查询参数）</span>
+              </label>
+              <label class="toggle">
+                <input 
+                  type="checkbox" 
+                  v-model="settings.duplicateDetection.rules.domainMatch"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <label class="setting-label">
+                <span>标题相似度匹配</span>
+                <span class="setting-description">页面标题相似度超过阈值时判定为重复</span>
+              </label>
+              <label class="toggle">
+                <input 
+                  type="checkbox" 
+                  v-model="settings.duplicateDetection.rules.titleMatch"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <label class="setting-label">
+                <span>智能综合匹配</span>
+                <span class="setting-description">综合 URL 结构和标题相似度进行智能判断</span>
+              </label>
+              <label class="toggle">
+                <input 
+                  type="checkbox" 
+                  v-model="settings.duplicateDetection.rules.smartMatch"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- 相似度阈值设置 -->
+            <div class="setting-item" v-if="settings.duplicateDetection.rules.titleMatch || settings.duplicateDetection.rules.smartMatch">
+              <label class="setting-label">
+                <span>相似度阈值</span>
+                <span class="setting-description">设置相似度判断的阈值 (0.1 - 1.0)</span>
+              </label>
+              <div class="threshold-control">
+                <input 
+                  type="range" 
+                  min="0.1" 
+                  max="1.0" 
+                  step="0.1" 
+                  v-model.number="settings.duplicateDetection.threshold"
+                  class="threshold-slider"
+                />
+                <span class="threshold-value">{{ settings.duplicateDetection.threshold }}</span>
+              </div>
+            </div>
           </div>
 
           <div class="setting-group">
@@ -226,6 +306,7 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <!-- 快捷键设置 -->
@@ -456,7 +537,14 @@ const settings = reactive<Settings>({
   },
   duplicateDetection: {
     enabled: true,
-    whitelist: []
+    whitelist: [],
+    rules: {
+      exactMatch: true,
+      domainMatch: true,
+      titleMatch: true,
+      smartMatch: true
+    },
+    threshold: 0.8
   },
   ui: {
     theme: 'auto',
@@ -494,6 +582,11 @@ watch(activeTab, async (newTab) => {
 
 // 监听设置变化
 watch(settings, async (newSettings, oldSettings) => {
+  // 检查重复检测设置是否发生变化
+  if (oldSettings && newSettings.duplicateDetection.enabled !== oldSettings.duplicateDetection.enabled) {
+    console.log('Duplicate detection enabled changed:', newSettings.duplicateDetection.enabled)
+  }
+  
   await saveSettings()
   // 实时应用主题变化
   if (newSettings.ui.theme) {
@@ -523,6 +616,9 @@ async function loadSettings() {
 // 保存设置
 async function saveSettings() {
   try {
+    console.log('Saving settings:', {
+      duplicateDetection: settings.duplicateDetection
+    })
     await settingsManager.updateSettings(settings)
     showSaveNotification.value = true
     setTimeout(() => {

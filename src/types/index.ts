@@ -64,7 +64,12 @@ export interface Settings {
   }
   duplicateDetection: {
     enabled: boolean
-    smartMatch: boolean
+    rules: {
+      exactMatch: boolean // 完全匹配
+      domainMatch: boolean // 域名+路径匹配
+      titleMatch: boolean // 标题相似度匹配
+      smartMatch: boolean // 智能综合匹配
+    }
     threshold: number
     whitelist: string[]
   }

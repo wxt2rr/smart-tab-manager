@@ -23,11 +23,15 @@ export class StorageManager {
       // 检查缓存
       const cached = this.cache.get(key)
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        console.log('Returning cached data for key:', key, cached.data)
         return cached.data
       }
 
+      console.log('Fetching fresh data from Chrome storage for key:', key)
       const result = await chrome.storage.local.get([key])
       const data = result[key] || null
+      
+      console.log('Fresh data from Chrome storage:', data)
 
       // 更新缓存
       if (data) {
@@ -126,7 +130,12 @@ export class SettingsManager {
     },
     duplicateDetection: {
       enabled: true,
-      smartMatch: true,
+      rules: {
+        exactMatch: true, // 完全匹配，默认开启
+        domainMatch: true, // 域名+路径匹配，默认开启
+        titleMatch: true, // 标题相似度匹配，默认开启
+        smartMatch: true // 智能综合匹配，默认开启
+      },
       threshold: 0.8,
       whitelist: []
     },
@@ -144,14 +153,52 @@ export class SettingsManager {
   }
 
   async getSettings(): Promise<Settings> {
+    // 强制清除缓存以确保获取最新数据
+    this.storage.clearCache()
+    
     const settings = await this.storage.get<Settings>('settings')
-    return settings ? { ...this.defaultSettings, ...settings } : this.defaultSettings
+    console.log('Raw settings from storage.get:', settings)
+    console.log('Default settings:', this.defaultSettings)
+    
+    const result = settings ? this.deepMerge(this.defaultSettings, settings) : this.defaultSettings
+    console.log('Final merged settings:', result)
+    
+    return result
   }
 
   async updateSettings(updates: Partial<Settings>): Promise<boolean> {
-    const currentSettings = await this.getSettings()
-    const newSettings = this.deepMerge(currentSettings, updates)
-    return await this.storage.set('settings', newSettings)
+    try {
+      const currentSettings = await this.getSettings()
+      // 创建一个全新的设置对象，避免引用问题
+      const newSettings = JSON.parse(JSON.stringify(this.deepMerge(currentSettings, updates)))
+      
+      // 保存设置
+      const success = await this.storage.set('settings', newSettings)
+      
+      if (success) {
+        // 清除缓存，确保下次读取时获取最新值
+        this.storage.clearCache()
+        
+        // 广播设置更新消息
+        try {
+          await chrome.runtime.sendMessage({
+            type: 'settings:updated',
+            payload: newSettings
+          })
+          console.log('Settings update broadcasted:', {
+            duplicateDetection: newSettings.duplicateDetection
+          })
+        } catch (error) {
+          // 忽略没有监听器的错误
+          console.log('No listeners for settings update')
+        }
+      }
+      
+      return success
+    } catch (error) {
+      console.error('Error updating settings:', error)
+      return false
+    }
   }
 
   async resetSettings(): Promise<boolean> {

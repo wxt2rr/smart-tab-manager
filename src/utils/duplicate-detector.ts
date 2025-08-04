@@ -9,7 +9,17 @@ export class DuplicateDetector {
   private detectionRules = new Map<string, (tab1: TabInfo, tab2: TabInfo) => boolean>()
   private whitelist = new Set<string>()
   private duplicateCache = new Map<string, DuplicateGroup[]>()
-  private settings: Settings['duplicateDetection'] | null = null
+  private settings: Settings['duplicateDetection'] = {
+    enabled: true,
+    rules: {
+      exactMatch: true,
+      domainMatch: true,
+      titleMatch: true,
+      smartMatch: true
+    },
+    threshold: 0.8,
+    whitelist: []
+  }
 
   public static getInstance(): DuplicateDetector {
     if (!DuplicateDetector.instance) {
@@ -21,6 +31,21 @@ export class DuplicateDetector {
   constructor() {
     this.initializeDetectionRules()
     this.loadSettings()
+    
+    // 监听设置更新消息
+    chrome.runtime.onMessage.addListener(async (message) => {
+      if (message.type === 'settings:updated') {
+        console.log('Settings updated, reloading duplicate detector settings')
+        // 重新加载完整的设置
+        await this.loadSettings()
+        console.log('Duplicate detector settings reloaded:', {
+          enabled: this.settings.enabled,
+          smartMatch: this.settings.smartMatch,
+          threshold: this.settings.threshold,
+          whitelist: Array.from(this.whitelist)
+        })
+      }
+    })
   }
 
   /**
@@ -59,19 +84,44 @@ export class DuplicateDetector {
    * 加载设置
    */
   private async loadSettings(): Promise<void> {
-    const userSettings = await settings.getSettings()
-    this.settings = userSettings.duplicateDetection
-    this.whitelist = new Set(this.settings.whitelist)
+    try {
+      // 直接从 Chrome 存储读取以进行调试
+      const rawSettings = await chrome.storage.local.get(['settings'])
+      console.log('Raw settings from Chrome storage:', rawSettings)
+      
+      const userSettings = await settings.getSettings()
+      console.log('Merged user settings:', userSettings)
+      console.log('duplicateDetection from merged settings:', userSettings.duplicateDetection)
+      
+      this.settings = userSettings.duplicateDetection
+      this.whitelist = new Set(this.settings.whitelist)
+      console.log('Duplicate detector settings loaded:', {
+        enabled: this.settings.enabled,
+        smartMatch: this.settings.smartMatch,
+        threshold: this.settings.threshold,
+        whitelist: Array.from(this.whitelist)
+      })
+    } catch (error) {
+      console.error('Error loading settings:', error)
+      // 使用默认设置
+      this.settings = {
+        enabled: true,
+        smartMatch: true,
+        threshold: 0.8,
+        whitelist: []
+      }
+      this.whitelist = new Set()
+    }
   }
 
   /**
-   * 检测所有重复页面
+   * 检测所有重复页面（用于定时任务和徽章更新）
    */
   async detectAllDuplicates(): Promise<DuplicateGroup[]> {
-    if (!this.settings?.enabled) {
-      return []
-    }
+    // 确保使用最新设置
+    await this.loadSettings()
 
+    // 定时检测总是运行，不管设置如何
     const tabs = await this.getAllTabs()
     return this.findDuplicateGroups(tabs)
   }
@@ -83,10 +133,15 @@ export class DuplicateDetector {
     // 重新加载设置以确保使用最新的设置
     await this.loadSettings()
     
-    console.log('Duplicate detection settings:', this.settings)
+    console.log('Duplicate detection settings:', {
+      enabled: this.settings?.enabled,
+      smartMatch: this.settings?.smartMatch,
+      threshold: this.settings?.threshold,
+      whitelist: Array.from(this.whitelist)
+    })
     
     if (!this.settings?.enabled) {
-      console.log('Duplicate detection is disabled')
+      console.log('Duplicate detection is disabled, skipping check')
       return []
     }
 
@@ -122,7 +177,7 @@ export class DuplicateDetector {
       if (processed.has(i)) continue
 
       const currentTab = tabs[i]
-      if (this.isWhitelisted(currentTab.url)) continue
+      if (!currentTab || this.isWhitelisted(currentTab.url)) continue
 
       const duplicates: TabInfo[] = [currentTab]
       const urls: string[] = [currentTab.url]
@@ -133,6 +188,8 @@ export class DuplicateDetector {
         if (processed.has(j)) continue
 
         const compareTab = tabs[j]
+        if (!compareTab) continue
+
         const matchResult = this.getMatchReason(currentTab, compareTab)
 
         if (matchResult.isDuplicate) {
@@ -170,25 +227,43 @@ export class DuplicateDetector {
       return false
     }
 
-    // 完全匹配检查
-    const exactMatch = this.detectionRules.get('exact')?.(tab1, tab2)
-    if (exactMatch) {
-      console.log('Exact match found:', tab1.url, '===', tab2.url)
-      return true
+    // 1. 完全匹配检查
+    if (this.settings.rules?.exactMatch) {
+      const exactMatch = this.detectionRules.get('exact')?.(tab1, tab2)
+      if (exactMatch) {
+        console.log('Exact match found:', tab1.url, '===', tab2.url)
+        return true
+      }
     }
 
-    if (!this.settings?.smartMatch) {
-      console.log('Smart match disabled, no duplicate found')
-      return false
+    // 2. 域名+路径匹配检查
+    if (this.settings.rules?.domainMatch) {
+      const domainMatch = this.detectionRules.get('domain')?.(tab1, tab2)
+      if (domainMatch) {
+        console.log('Domain match found between:', tab1.url, 'and', tab2.url)
+        return true
+      }
     }
 
-    // 智能匹配检查
-    const smartMatch = this.detectionRules.get('smart')?.(tab1, tab2) || false
-    if (smartMatch) {
-      console.log('Smart match found between:', tab1.url, 'and', tab2.url)
+    // 3. 标题相似度匹配检查
+    if (this.settings.rules?.titleMatch) {
+      const titleMatch = this.detectionRules.get('title')?.(tab1, tab2)
+      if (titleMatch) {
+        console.log('Title match found between:', tab1.title, 'and', tab2.title)
+        return true
+      }
+    }
+
+    // 4. 智能综合匹配检查
+    if (this.settings.rules?.smartMatch) {
+      const smartMatch = this.detectionRules.get('smart')?.(tab1, tab2) || false
+      if (smartMatch) {
+        console.log('Smart match found between:', tab1.url, 'and', tab2.url)
+        return true
+      }
     }
     
-    return smartMatch
+    return false
   }
 
   /**
@@ -200,29 +275,29 @@ export class DuplicateDetector {
     similarity: number
   } {
     // 完全匹配
-    if (this.detectionRules.get('exact')?.(tab1, tab2)) {
+    if (this.settings.rules?.exactMatch && this.detectionRules.get('exact')?.(tab1, tab2)) {
       return { isDuplicate: true, reason: 'exact', similarity: 1.0 }
     }
 
-    if (!this.settings?.smartMatch) {
-      return { isDuplicate: false, reason: 'exact', similarity: 0 }
-    }
-
     // 域名匹配
-    if (this.detectionRules.get('domain')?.(tab1, tab2)) {
+    if (this.settings.rules?.domainMatch && this.detectionRules.get('domain')?.(tab1, tab2)) {
       return { isDuplicate: true, reason: 'domain', similarity: 0.9 }
     }
 
     // 标题匹配
-    const titleSimilarity = this.calculateSimilarity(tab1.title, tab2.title)
-    if (titleSimilarity > (this.settings?.threshold || 0.8)) {
-      return { isDuplicate: true, reason: 'title', similarity: titleSimilarity }
+    if (this.settings.rules?.titleMatch) {
+      const titleSimilarity = this.calculateSimilarity(tab1.title, tab2.title)
+      if (titleSimilarity > (this.settings?.threshold || 0.8)) {
+        return { isDuplicate: true, reason: 'title', similarity: titleSimilarity }
+      }
     }
 
     // 智能匹配
-    const smartSimilarity = this.getSmartSimilarity(tab1, tab2)
-    if (smartSimilarity > (this.settings?.threshold || 0.8)) {
-      return { isDuplicate: true, reason: 'smart', similarity: smartSimilarity }
+    if (this.settings.rules?.smartMatch) {
+      const smartSimilarity = this.getSmartSimilarity(tab1, tab2)
+      if (smartSimilarity > (this.settings?.threshold || 0.8)) {
+        return { isDuplicate: true, reason: 'smart', similarity: smartSimilarity }
+      }
     }
 
     return { isDuplicate: false, reason: 'exact', similarity: 0 }
@@ -337,7 +412,8 @@ export class DuplicateDetector {
       score += paramSimilarity * 0.2
 
       return score / maxScore
-    } catch {
+    } catch (error) {
+      console.error('Error calculating URL similarity:', error)
       return 0
     }
   }
@@ -378,10 +454,10 @@ export class DuplicateDetector {
     try {
       const tabs = await chrome.tabs.query({})
       return tabs.map(tab => ({
-        id: tab.id,
+        id: tab.id || 0, // 使用 0 作为默认值，因为 id 在 TabInfo 中是必需的
         url: tab.url || '',
         title: tab.title || '',
-        favicon: tab.favIconUrl,
+        favicon: tab.favIconUrl || '',
         windowId: tab.windowId,
         index: tab.index,
         active: tab.active,

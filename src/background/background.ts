@@ -3,12 +3,14 @@ import { syncManager } from '@/utils/sync-manager'
 import { workspaceManager } from '@/utils/workspace-manager'
 import { migration } from '@/utils/storage'
 import { useI18n } from '@/utils/i18n'
+import type { TabInfo } from '@/types'
 
 /**
  * 后台脚本主文件
  */
 class BackgroundService {
   private duplicateNotificationIds = new Set<string>()
+  private recentDuplicateChecks = new Map<number, number>() // tabId -> timestamp
   private isInitialized = false
 
   constructor() {
@@ -101,40 +103,10 @@ class BackgroundService {
         active: tabInfo.active
       })
 
-      let duplicates = []
-
-      // 对于新标签页，我们等待它加载完成后再检测重复
-      // 因为新建标签页通常会先创建 chrome://newtab/ 然后导航到目标URL
-      if (tab.status === 'loading' && tabInfo.url === 'chrome://newtab/') {
-        console.log('⏳ New tab is still loading (chrome://newtab/), will check duplicates on update...')
-        // 不在这里检测重复，等待 handleTabUpdated 处理
-      } else if (tab.status === 'complete' && tabInfo.url !== 'chrome://newtab/') {
-        console.log('🔍 Checking duplicates for completed new tab...')
-        console.log('📋 Tab info for duplicate detection:', tabInfo)
-        
-        try {
-          duplicates = await duplicateDetector.detectNewTabDuplicates(tabInfo)
-          console.log('🎯 Duplicate detection completed. Found', duplicates.length, 'duplicates')
-          
-          if (duplicates.length > 0) {
-            console.log('📝 Duplicate details:')
-            duplicates.forEach((dup, index) => {
-              console.log(`   ${index + 1}. ID: ${dup.id}, Title: "${dup.title}", URL: ${dup.url}`)
-            })
-            console.log('⚠️ Duplicates detected! Showing choice dialog...')
-            await this.showDuplicateChoiceDialog(tabInfo, duplicates)
-          } else {
-            console.log('✅ No duplicates found for new tab')
-          }
-        } catch (duplicateError) {
-          console.error('❌ Error during duplicate detection:', duplicateError)
-        }
-      } else {
-        console.log('📝 Tab status/URL conditions not met for duplicate check:', {
-          status: tab.status,
-          url: tabInfo.url,
-          isNewtab: tabInfo.url === 'chrome://newtab/'
-        })
+      // 对于新标签页，我们不在这里检测重复
+      // 而是等待 handleTabUpdated 在页面完全加载后进行检测
+      if (tab.status === 'loading' || tabInfo.url === 'chrome://newtab/') {
+        console.log('⏳ New tab is still loading, will check duplicates on update...')
       }
 
       // 更新徽章
@@ -148,7 +120,7 @@ class BackgroundService {
       // 通知前端更新
       this.broadcastMessage({
         type: 'tab-created',
-        payload: { tab: tabInfo, duplicates }
+        payload: { tab: tabInfo }
       })
       console.log('📢 Broadcasted tab-created message to popup')
       
@@ -164,6 +136,9 @@ class BackgroundService {
     try {
       // 清理重复通知
       this.duplicateNotificationIds.delete(`duplicate-${tabId}`)
+      
+      // 清理重复检测缓存
+      this.recentDuplicateChecks.delete(tabId)
 
       // 更新徽章
       await this.updateBadge()
@@ -199,10 +174,10 @@ class BackgroundService {
       }
 
       const tabInfo = {
-        id: tab.id,
+        id: tab.id!,
         url: tab.url,
         title: tab.title || '',
-        favicon: tab.favIconUrl,
+        favicon: tab.favIconUrl || '',
         windowId: tab.windowId,
         index: tab.index,
         active: tab.active,
@@ -216,45 +191,51 @@ class BackgroundService {
         changeInfo: changeInfo
       })
 
-      let duplicates = []
+      let duplicates: TabInfo[] = []
 
-      // 如果URL发生变化或页面加载完成，检测重复
-      const shouldCheckDuplicates = changeInfo.url || (changeInfo.status === 'complete' && tab.url !== 'chrome://newtab/')
+      // 只在以下情况检测重复：
+      // 1. URL 发生变化
+      // 2. 页面首次加载完成（status 变为 complete）且不是 newtab
+      const shouldCheckDuplicates = 
+        changeInfo.url || 
+        (changeInfo.status === 'complete' && 
+         tab.url !== 'chrome://newtab/' && 
+         !tab.url.startsWith('chrome://'))
       
       if (shouldCheckDuplicates) {
-        console.log('🔍 Conditions met for duplicate check:', {
-          urlChanged: !!changeInfo.url,
-          statusComplete: changeInfo.status === 'complete',
-          notNewtab: tab.url !== 'chrome://newtab/',
-          finalUrl: tab.url
-        })
+        console.log('🔍 Checking duplicates for updated tab...')
+        console.log('📋 Tab info for duplicate detection:', tabInfo)
         
-        console.log('📋 Tab info for update duplicate detection:', tabInfo)
+        // 检查是否在最近5秒内已经检测过这个标签页
+        const now = Date.now()
+        const lastCheck = this.recentDuplicateChecks.get(tabId)
+        const DUPLICATE_CHECK_COOLDOWN = 5000 // 5秒冷却时间
+        
+        if (lastCheck && (now - lastCheck) < DUPLICATE_CHECK_COOLDOWN) {
+          console.log('⏭️ Skipping duplicate check - recently checked this tab:', tabId)
+          return
+        }
+        
+        // 记录本次检测时间
+        this.recentDuplicateChecks.set(tabId, now)
         
         try {
           duplicates = await duplicateDetector.detectNewTabDuplicates(tabInfo)
-          console.log('🎯 Update duplicate detection completed. Found', duplicates.length, 'duplicates')
+          console.log('🎯 Duplicate detection completed. Found', duplicates.length, 'duplicates')
           
           if (duplicates.length > 0) {
-            console.log('📝 Update duplicate details:')
+            console.log('📝 Duplicate details:')
             duplicates.forEach((dup, index) => {
               console.log(`   ${index + 1}. ID: ${dup.id}, Title: "${dup.title}", URL: ${dup.url}`)
             })
-            console.log('⚠️ Duplicates found in update! Showing choice dialog...')
+            console.log('⚠️ Duplicates found! Showing choice dialog...')
             await this.showDuplicateChoiceDialog(tabInfo, duplicates)
           } else {
             console.log('✅ No duplicates found for updated tab')
           }
         } catch (duplicateError) {
-          console.error('❌ Error during update duplicate detection:', duplicateError)
+          console.error('❌ Error during duplicate detection:', duplicateError)
         }
-      } else {
-        console.log('📝 Duplicate check conditions not met:', {
-          urlChanged: !!changeInfo.url,
-          statusComplete: changeInfo.status === 'complete',
-          isNewtab: tab.url === 'chrome://newtab/',
-          currentStatus: changeInfo.status
-        })
       }
 
       // 通知前端更新
@@ -421,6 +402,11 @@ class BackgroundService {
           sendResponse({ success: true })
           break
 
+        case 'settings:updated':
+          console.log('Settings updated:', message.payload)
+          sendResponse({ success: true })
+          break
+
         case 'open-workspace':
           await workspaceManager.openWorkspace(message.payload.workspaceId, message.payload.options)
           sendResponse({ success: true })
@@ -536,6 +522,7 @@ class BackgroundService {
     // 每30秒检查一次重复页面
     setInterval(async () => {
       try {
+        // 定时任务总是检测重复页面并更新徽章，不管设置如何
         const duplicates = await duplicateDetector.detectAllDuplicates()
         await this.updateBadge(duplicates.length)
       } catch (error) {
@@ -543,9 +530,10 @@ class BackgroundService {
       }
     }, 30000)
 
-    // 每5分钟清理过期通知
+    // 每5分钟清理过期通知和缓存
     setInterval(() => {
       this.cleanupExpiredNotifications()
+      this.cleanupExpiredDuplicateChecks()
     }, 5 * 60000)
 
     // 每30秒发送心跳信号，用于检测连接状态
@@ -1138,6 +1126,16 @@ class BackgroundService {
   private cleanupExpiredNotifications(): void {
     // 清理过期的通知ID
     // 实际实现中可能需要更复杂的逻辑
+  }
+
+  private cleanupExpiredDuplicateChecks(): void {
+    const now = Date.now()
+    this.recentDuplicateChecks.forEach((timestamp, tabId) => {
+      if (now - timestamp > 5000) { // 5秒冷却时间
+        this.recentDuplicateChecks.delete(tabId)
+        console.log(`Cleaned up duplicate check cache for tab: ${tabId}`)
+      }
+    })
   }
 
   // 命令处理方法

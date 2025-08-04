@@ -1,1 +1,43 @@
 /* This file is imported by options.html but styles are handled by Tailwind CSS in main.css */
+.threshold-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.threshold-slider {
+  flex: 1;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.threshold-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #007aff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.threshold-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #007aff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.threshold-value {
+  min-width: 40px;
+  text-align: center;
+  font-weight: 600;
+  color: #007aff;
+}
