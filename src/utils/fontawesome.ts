@@ -3,100 +3,76 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // 从 Font Awesome 免费版本导入所需图标
 import {
-  // 搜索和导航
-  faSearch,
-  faChartBar,
-  faCopy,
+  faPlus,
   faFolder,
-  faBolt,
-  faCog,
+  faFolderOpen,
   faPlay,
   faEdit,
-  faPlus,
-  faGlobe,
-  
-  // 警告和状态
+  faCopy,
   faExclamationTriangle,
-  faExclamationCircle,
-  faCheckCircle,
-  faInfoCircle,
   faTimes,
-  
-  // 操作
+  faSearch,
+  faFilter,
+  faSort,
+  faSortAlphaDown,
+  faSortAlphaUp,
+  faGlobe,
   faCloudUploadAlt,
   faCamera,
   faSync,
   faTrash,
-  faDownload,
-  faUpload,
-  faTerminal,
-  faArchive
+  faBolt,
+  faExternalLinkAlt
 } from '@fortawesome/free-solid-svg-icons'
 
 // 注册图标到库中
 library.add(
-  // 搜索和导航
-  faSearch,
-  faChartBar,
-  faCopy,
+  faPlus,
   faFolder,
-  faBolt,
-  faCog,
+  faFolderOpen,
   faPlay,
   faEdit,
-  faPlus,
-  faGlobe,
-  
-  // 警告和状态
+  faCopy,
   faExclamationTriangle,
-  faExclamationCircle,
-  faCheckCircle,
-  faInfoCircle,
   faTimes,
-  
-  // 操作
+  faSearch,
+  faFilter,
+  faSort,
+  faSortAlphaDown,
+  faSortAlphaUp,
+  faGlobe,
   faCloudUploadAlt,
   faCamera,
   faSync,
   faTrash,
-  faDownload,
-  faUpload,
-  faTerminal,
-  faArchive
+  faBolt,
+  faExternalLinkAlt
 )
 
 // 导出 FontAwesome 组件
 export { FontAwesomeIcon }
 
 // 图标名称映射（从 Heroicons 到 Font Awesome）
-export const iconMap = {
+export const iconMap: Record<string, string> = {
   // 基础图标
-  'MagnifyingGlassIcon': 'search',
-  'ChartBarIcon': 'chart-bar',
-  'DocumentDuplicateIcon': 'copy',
-  'FolderIcon': 'folder',
-  'BoltIcon': 'bolt',
-  'CogIcon': 'cog',
-  'Cog6ToothIcon': 'cog',
-  'PlayIcon': 'play',
-  'PencilIcon': 'edit',
   'PlusIcon': 'plus',
-  'GlobeAltIcon': 'globe',
-  
-  // 状态图标
+  'FolderIcon': 'folder',
+  'FolderOpenIcon': 'folder-open',
+  'PlayIcon': 'play', 
+  'PencilIcon': 'edit',
+  'DocumentDuplicateIcon': 'copy',
   'ExclamationTriangleIcon': 'exclamation-triangle',
-  'ExclamationCircleIcon': 'exclamation-circle',
-  'CheckCircleIcon': 'check-circle',
-  'InformationCircleIcon': 'info-circle',
   'XMarkIcon': 'times',
-  
-  // 操作图标
+  'MagnifyingGlassIcon': 'search',
+  'FunnelIcon': 'filter',
+  'BarsArrowDownIcon': 'sort',
+  'BarsArrowUpIcon': 'sort-alpha-down',
+  'Bars3BottomLeftIcon': 'sort-alpha-up',
+  'GlobeAltIcon': 'globe',
   'CloudArrowUpIcon': 'cloud-upload-alt',
   'CameraIcon': 'camera',
   'ArrowPathIcon': 'sync',
   'TrashIcon': 'trash',
-  'ArrowDownTrayIcon': 'download',
-  'ArrowUpTrayIcon': 'upload',
-  'CommandLineIcon': 'terminal',
-  'ArchiveBoxIcon': 'archive'
+  'BoltIcon': 'bolt',
+  'ArrowTopRightOnSquareIcon': 'external-link-alt'
 } 

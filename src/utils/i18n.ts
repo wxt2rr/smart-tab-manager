@@ -57,6 +57,7 @@ export const messages = {
         newWorkspace: '新建分组',
         open: '打开分组',
         edit: '编辑分组',
+        delete: '删除分组',
         selector: {
           title: '选择分组',
           description: '将 "{title}" 添加到哪个分组？',
@@ -83,7 +84,28 @@ export const messages = {
           updateFailedMessage: '无法更新分组名称',
           createSuccess: '分组已创建',
           createFailed: '创建失败',
-          createFailedMessage: '无法创建分组'
+          createFailedMessage: '无法创建分组',
+          removeTabSuccess: '移除成功',
+          removeTabSuccessMessage: '已从分组中移除 "{title}"',
+          removeTabFailed: '移除失败',
+          removeTabFailedMessage: '无法从分组中移除标签',
+          openTabFailed: '打开失败',
+          openTabFailedMessage: '无法打开标签页',
+          deleteConfirm: '确定要删除分组 "{name}" 吗？',
+          deleteConfirmMessage: '删除后分组内的所有标签页记录将丢失，此操作无法撤销。',
+          deleteSuccess: '删除成功',
+          deleteSuccessMessage: '分组 "{name}" 已删除',
+          deleteFailed: '删除失败',
+          deleteFailedMessage: '无法删除分组'
+        },
+        tabsDialog: {
+          title: '分组标签列表',
+          description: '分组 "{name}" 中的标签页',
+          emptyTabs: '暂无标签页',
+          removeTab: '移除标签',
+          openTab: '打开标签',
+          removeConfirm: '确定要从分组中移除 "{title}" 吗？',
+          close: '关闭'
         }
       },
       tabActions: {
@@ -440,6 +462,7 @@ export const messages = {
         newWorkspace: 'New Workspace',
         open: 'Open Workspace',
         edit: 'Edit Workspace',
+        delete: 'Delete Workspace',
         selector: {
           title: 'Select Workspace',
           description: 'Add "{title}" to which workspace?',
@@ -466,7 +489,28 @@ export const messages = {
           updateFailedMessage: 'Failed to update workspace name',
           createSuccess: 'Workspace created',
           createFailed: 'Creation failed',
-          createFailedMessage: 'Failed to create workspace'
+          createFailedMessage: 'Failed to create workspace',
+          removeTabSuccess: 'Removed successfully',
+          removeTabSuccessMessage: 'Removed "{title}" from workspace',
+          removeTabFailed: 'Remove failed',
+          removeTabFailedMessage: 'Failed to remove tab from workspace',
+          openTabFailed: 'Failed to open tab',
+          openTabFailedMessage: 'Failed to open tab',
+          deleteConfirm: 'Are you sure you want to delete workspace "{name}"?',
+          deleteConfirmMessage: 'All tab records within the workspace will be lost after deletion, this action cannot be undone.',
+          deleteSuccess: 'Deleted successfully',
+          deleteSuccessMessage: 'Workspace "{name}" deleted',
+          deleteFailed: 'Delete failed',
+          deleteFailedMessage: 'Failed to delete workspace'
+        },
+        tabsDialog: {
+          title: 'Group Tab List',
+          description: 'Tabs in workspace "{name}"',
+          emptyTabs: 'No tabs',
+          removeTab: 'Remove Tab',
+          openTab: 'Open Tab',
+          removeConfirm: 'Are you sure you want to remove "{title}" from the workspace?',
+          close: 'Close'
         }
       },
       tabActions: {

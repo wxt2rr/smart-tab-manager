@@ -207,9 +207,11 @@ export class WorkspaceManager {
       workspace.updatedAt = Date.now()
       await this.saveWorkspaces()
       console.log(`Added tab to workspace ${workspaceId}: ${tabInfo.title}`)
+      return true
+    } else {
+      console.log(`Tab already exists in workspace ${workspaceId}: ${tabInfo.title}`)
+      return false
     }
-
-    return true
   }
 
   /**

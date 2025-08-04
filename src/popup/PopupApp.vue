@@ -231,7 +231,7 @@
           :key="workspace.id"
           class="workspace-item"
           :class="{ 'active': workspace.id === activeWorkspaceId }"
-          @click="openWorkspace(workspace)"
+          @click="showWorkspaceTabsDialog(workspace)"
         >
           <div class="workspace-icon" :style="{ backgroundColor: workspace.color }">
             {{ workspace.icon }}
@@ -252,16 +252,23 @@
             <button 
               class="workspace-action"
               @click.stop="openWorkspace(workspace)"
-              :title="t('popup.workspaces.open')"
+              :title="isI18nReady ? t('popup.workspaces.open') : '打开分组'"
             >
               <FontAwesomeIcon icon="play" class="w-3 h-3" />
             </button>
             <button 
               class="workspace-action"
               @click.stop="editWorkspace(workspace)"
-              :title="t('popup.workspaces.edit')"
+              :title="isI18nReady ? t('popup.workspaces.edit') : '编辑分组'"
             >
               <FontAwesomeIcon icon="edit" class="w-3 h-3" />
+            </button>
+            <button 
+              class="workspace-action delete"
+              @click.stop="deleteWorkspace(workspace)"
+              :title="isI18nReady ? t('popup.workspaces.delete') : '删除分组'"
+            >
+              <FontAwesomeIcon icon="trash" class="w-3 h-3" />
             </button>
           </div>
         </div>
@@ -418,6 +425,60 @@
 
         <div class="dialog-actions">
           <button class="btn-cancel" @click="showRestoreDialog = false">{{ t('popup.systemActions.restoreDialog.cancel') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分组标签列表对话框 -->
+    <div v-if="showWorkspaceTabsDialogVisible" class="workspace-selector-overlay" @click="showWorkspaceTabsDialogVisible = false">
+      <div class="workspace-selector-dialog workspace-tabs-dialog" @click.stop>
+        <h3>{{ isI18nReady ? t('popup.workspaces.tabsDialog.title') : '分组标签列表' }}</h3>
+        <p class="dialog-desc">{{ getWorkspaceDialogDescription() }}</p>
+        
+        <div class="workspace-tabs-list">
+          <div v-if="!selectedWorkspaceForTabs?.tabs.length" class="no-tabs">
+            <FontAwesomeIcon icon="folder-open" class="w-8 h-8 opacity-50" />
+            <span>{{ isI18nReady ? t('popup.workspaces.tabsDialog.emptyTabs') : '暂无标签页' }}</span>
+          </div>
+          <div 
+            v-for="tab in selectedWorkspaceForTabs?.tabs" 
+            :key="tab.url"
+            class="workspace-tab-item"
+          >
+            <div class="tab-icon">
+              <img v-if="tab.favicon" :src="tab.favicon" class="w-4 h-4" />
+              <FontAwesomeIcon v-else icon="globe" class="w-4 h-4 opacity-50" />
+            </div>
+            <div class="tab-info">
+              <span class="tab-title">{{ tab.title }}</span>
+              <span class="tab-url">{{ tab.url }}</span>
+            </div>
+            <div class="tab-actions">
+              <button 
+                class="tab-action-btn open"
+                @click="openTabFromWorkspace(tab)"
+                :title="isI18nReady ? t('popup.workspaces.tabsDialog.openTab') : '打开标签'"
+              >
+                <FontAwesomeIcon icon="external-link-alt" class="w-3 h-3" />
+              </button>
+              <button 
+                class="tab-action-btn remove"
+                @click="removeTabFromWorkspace(selectedWorkspaceForTabs!, tab)"
+                :title="isI18nReady ? t('popup.workspaces.tabsDialog.removeTab') : '移除标签'"
+              >
+                <FontAwesomeIcon icon="trash" class="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn-primary" @click="openWorkspace(selectedWorkspaceForTabs!)">
+            {{ isI18nReady ? t('popup.workspaces.open') : '打开分组' }}
+          </button>
+          <button class="btn-cancel" @click="showWorkspaceTabsDialogVisible = false">
+            {{ isI18nReady ? t('popup.workspaces.tabsDialog.close') : '关闭' }}
+          </button>
         </div>
       </div>
     </div>
@@ -1137,30 +1198,28 @@ async function addTabToSpecificWorkspace(tab: TabInfo, workspace: Workspace) {
     addedAt: Date.now()
   }
 
-  // 检查是否已存在
-  const exists = workspace.tabs.some(existingTab => existingTab.url === tab.url)
-  if (exists) {
+  const success = await workspaceManager.addTabToWorkspace(workspace.id, tabToAdd)
+  
+  if (success) {
+    // 重新加载工作空间数据而不是手动修改，避免重复
+    const newWorkspaces = workspaceManager.getAllWorkspaces()
+    workspaces.value.splice(0, workspaces.value.length, ...newWorkspaces)
+    
+    const successMessage = isI18nReady.value ? 
+      t('popup.workspaces.notifications.addSuccessMessage').replace('{name}', workspace.name) : 
+      `已添加到 "${workspace.name}"`
+    showNotification('success', 
+      isI18nReady.value ? t('popup.workspaces.notifications.addSuccess') : '添加成功', 
+      successMessage)
+  } else {
+    // 标签已存在或添加失败
     const message = isI18nReady.value ? 
       t('popup.workspaces.notifications.tabExistsMessage').replace('{title}', tab.title) : 
       `"${tab.title}" 已在分组中`
     showNotification('info', 
       isI18nReady.value ? t('popup.workspaces.notifications.tabExists') : '标签页已存在', 
       message)
-    return
   }
-
-  await workspaceManager.addTabToWorkspace(workspace.id, tabToAdd)
-  
-  // 更新本地工作空间数据
-  workspace.tabs.push(tabToAdd)
-  workspace.updatedAt = Date.now()
-  
-  const successMessage = isI18nReady.value ? 
-    t('popup.workspaces.notifications.addSuccessMessage').replace('{name}', workspace.name) : 
-    `已添加到 "${workspace.name}"`
-  showNotification('success', 
-    isI18nReady.value ? t('popup.workspaces.notifications.addSuccess') : '添加成功', 
-    successMessage)
 }
 
 async function selectWorkspaceForTab(workspace: Workspace) {
@@ -1237,7 +1296,11 @@ async function createWorkspace() {
       color: '#007AFF',
       tabs: []
     })
-    workspaces.value.push(workspace)
+    
+    // 重新加载工作空间数据而不是手动推入，避免重复
+    const newWorkspaces = workspaceManager.getAllWorkspaces()
+    workspaces.value.splice(0, workspaces.value.length, ...newWorkspaces)
+    
     showNotification('success', 
       isI18nReady.value ? t('popup.workspaces.notifications.createSuccess') : '分组已创建', 
       workspace.name)
@@ -1689,6 +1752,125 @@ function getSortButtonTitle() {
   } catch (error) {
     console.error('Error in getSortButtonTitle:', error)
     return '当前排序: 排序' // 默认标题
+  }
+}
+
+// 新增：显示工作空间标签页对话框
+const showWorkspaceTabsDialogVisible = ref(false)
+const selectedWorkspaceForTabs = ref<Workspace | null>(null)
+
+function showWorkspaceTabsDialog(workspace: Workspace) {
+  selectedWorkspaceForTabs.value = workspace
+  showWorkspaceTabsDialogVisible.value = true
+}
+
+async function removeTabFromWorkspace(workspace: Workspace, tab: TabInfo) {
+  const confirmText = isI18nReady.value ?
+    t('popup.workspaces.tabsDialog.removeConfirm').replace('{title}', tab.title) :
+    `确定要从分组中移除 "${tab.title}" 吗？`
+  
+  if (confirm(confirmText)) {
+    const success = await workspaceManager.removeTabFromWorkspace(workspace.id, tab.url)
+    if (success) {
+      // 重新加载工作空间数据
+      const newWorkspaces = workspaceManager.getAllWorkspaces()
+      workspaces.value.splice(0, workspaces.value.length, ...newWorkspaces)
+      
+      // 更新对话框中显示的工作空间数据
+      const updatedWorkspace = newWorkspaces.find(w => w.id === workspace.id)
+      if (updatedWorkspace) {
+        selectedWorkspaceForTabs.value = updatedWorkspace
+      }
+      
+      const successMessage = isI18nReady.value ? 
+        t('popup.workspaces.notifications.removeTabSuccessMessage').replace('{title}', tab.title) : 
+        `已从分组中移除 "${tab.title}"`
+      showNotification('success', 
+        isI18nReady.value ? t('popup.workspaces.notifications.removeTabSuccess') : '移除成功', 
+        successMessage)
+    } else {
+      showNotification('error', 
+        isI18nReady.value ? t('popup.workspaces.notifications.removeTabFailed') : '移除失败', 
+        isI18nReady.value ? t('popup.workspaces.notifications.removeTabFailedMessage') : '无法从分组中移除标签')
+    }
+  }
+}
+
+async function openTabFromWorkspace(tab: TabInfo) {
+  try {
+    // 尝试找到现有的标签页
+    const tabs = await chrome.tabs.query({ url: tab.url })
+    if (tabs.length > 0) {
+      // 如果标签页已存在，激活它
+      await chrome.tabs.update(tabs[0].id!, { active: true })
+    } else {
+      // 如果不存在，创建新标签页
+      await chrome.tabs.create({ url: tab.url, active: true })
+    }
+    window.close()
+  } catch (error) {
+    showNotification('error', 
+      isI18nReady.value ? t('popup.workspaces.notifications.openTabFailed') : '打开失败', 
+      isI18nReady.value ? t('popup.workspaces.notifications.openTabFailedMessage') : '无法打开标签页')
+  }
+}
+
+function getWorkspaceDialogDescription() {
+  if (!selectedWorkspaceForTabs.value) {
+    return isI18nReady.value ? 
+      (t('popup.workspaces.tabsDialog.description') || '分组标签页') : 
+      '分组标签页'
+  }
+  
+  const name = selectedWorkspaceForTabs.value.name
+  if (isI18nReady.value) {
+    try {
+      const template = t('popup.workspaces.tabsDialog.description') || '分组 "{name}" 中的标签页'
+      return template.replace('{name}', name)
+    } catch (error) {
+      return `分组 "${name}" 中的标签页`
+    }
+  } else {
+    return `分组 "${name}" 中的标签页`
+  }
+}
+
+async function deleteWorkspace(workspace: Workspace) {
+  const confirmTitle = isI18nReady.value ?
+    t('popup.workspaces.notifications.deleteConfirm').replace('{name}', workspace.name) :
+    `确定要删除分组 "${workspace.name}" 吗？`
+  
+  const confirmMessage = isI18nReady.value ?
+    t('popup.workspaces.notifications.deleteConfirmMessage') :
+    '删除后分组内的所有标签页记录将丢失，此操作无法撤销。'
+  
+  const fullConfirmText = `${confirmTitle}\n\n${confirmMessage}`
+  
+  if (confirm(fullConfirmText)) {
+    try {
+      const success = await workspaceManager.deleteWorkspace(workspace.id)
+      if (success) {
+        // 重新加载工作空间数据
+        const newWorkspaces = workspaceManager.getAllWorkspaces()
+        workspaces.value.splice(0, workspaces.value.length, ...newWorkspaces)
+        
+        const successMessage = isI18nReady.value ? 
+          t('popup.workspaces.notifications.deleteSuccessMessage').replace('{name}', workspace.name) : 
+          `分组 "${workspace.name}" 已删除`
+        showNotification('success', 
+          isI18nReady.value ? t('popup.workspaces.notifications.deleteSuccess') : '删除成功', 
+          successMessage)
+      } else {
+        showNotification('error', 
+          isI18nReady.value ? t('popup.workspaces.notifications.deleteFailed') : '删除失败', 
+          isI18nReady.value ? t('popup.workspaces.notifications.deleteFailedMessage') : '无法删除分组')
+      }
+    } catch (error) {
+      console.error('Error deleting workspace:', error)
+      showNotification('error', 
+        isI18nReady.value ? t('popup.workspaces.notifications.deleteFailed') : '删除失败', 
+        isI18nReady.value ? t('popup.workspaces.notifications.deleteFailedMessage') : '无法删除分组')
+    }
   }
 }
 </script>

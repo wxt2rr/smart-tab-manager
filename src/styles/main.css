@@ -837,6 +837,15 @@ body {
   color: #374151;
 }
 
+.workspace-action.delete {
+  color: #EF4444;
+}
+
+.workspace-action.delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+}
+
 .dark .workspace-action {
   color: #9CA3AF;
 }
@@ -844,6 +853,15 @@ body {
 .dark .workspace-action:hover {
   background: rgba(255, 255, 255, 0.05);
   color: #D1D5DB;
+}
+
+.dark .workspace-action.delete {
+  color: #EF4444;
+}
+
+.dark .workspace-action.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #F87171;
 }
 
 .add-workspace-btn {
@@ -927,39 +945,91 @@ body {
 }
 
 .tab-action-btn {
+  padding: 8px;
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-  transition: all 0.2s ease;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .tab-action-btn:hover {
-  background: rgba(0, 122, 255, 0.05);
-  border-color: rgba(0, 122, 255, 0.2);
+  background: #F3F4F6;
+  transform: scale(1.05);
+}
+
+.tab-action-btn.open {
   color: #007AFF;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-color: #007AFF;
+}
+
+.tab-action-btn.open:hover {
+  background: #EBF5FF;
+  border-color: #0056CC;
+}
+
+.tab-action-btn.remove {
+  color: #EF4444;
+  border-color: #EF4444;
+}
+
+.tab-action-btn.remove:hover {
+  background: #FEF2F2;
+  border-color: #DC2626;
+  transform: scale(1.05);
 }
 
 .dark .tab-action-btn {
-  background: #2C2C2E;
-  border-color: #48484A;
-  color: #D1D5DB;
+  border-color: #374151;
 }
 
 .dark .tab-action-btn:hover {
-  background: rgba(0, 122, 255, 0.1);
-  border-color: rgba(0, 122, 255, 0.3);
-  color: #007AFF;
+  background: #374151;
+}
+
+.dark .tab-action-btn.open:hover {
+  background: #1E3A8A;
+}
+
+.dark .tab-action-btn.remove:hover {
+  background: #7F1D1D;
+}
+
+.no-tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.no-tabs svg {
+  margin-bottom: 8px;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background: #007AFF;
+  border: 1px solid #007AFF;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #0056CC;
+  border-color: #0056CC;
 }
 
 /* 分组选择对话框 */
@@ -1115,196 +1185,55 @@ body {
   color: #D1D5DB;
 }
 
-.btn-danger {
-  padding: 8px 16px;
-  background: #FF3B30;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* 分组标签列表对话框样式 */
+.workspace-tabs-dialog {
+  max-width: 480px;
+  max-height: 500px;
 }
 
-.btn-danger:hover {
-  background: #D70015;
-}
-
-/* 清理对话框样式 */
-.cleanup-dialog {
-  max-width: 400px;
-}
-
-.duplicate-preview {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 12px;
-  background: #F9FAFB;
-}
-
-.dark .duplicate-preview {
-  border-color: #374151;
-  background: #2C2C2E;
-}
-
-.duplicate-group {
-  margin-bottom: 12px;
-}
-
-.duplicate-group:last-child {
-  margin-bottom: 0;
-}
-
-.group-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 6px;
-}
-
-.dark .group-title {
-  color: #F9FAFB;
-}
-
-.group-icon {
-  font-size: 12px;
-}
-
-.duplicate-count {
-  color: #FF3B30;
-  font-weight: 600;
-}
-
-.tabs-preview {
-  margin-left: 18px;
+.workspace-tabs-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.tab-preview {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  font-size: 12px;
-}
-
-.tab-status {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  min-width: 32px;
-  text-align: center;
-}
-
-.tab-status.keep {
-  background: #34C759;
-  color: white;
-}
-
-.tab-status.close {
-  background: #FF3B30;
-  color: white;
-}
-
-.tab-domain {
-  color: #6B7280;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.more-tabs, .more-groups {
-  font-size: 12px;
-  color: #6B7280;
-  font-style: italic;
-}
-
-.more-groups {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #E5E7EB;
-}
-
-.dark .more-groups {
-  border-top-color: #374151;
-}
-
-/* 会话恢复对话框样式 */
-.restore-dialog {
-  max-width: 380px;
-}
-
-.snapshots-list {
+  margin-bottom: 16px;
   max-height: 300px;
   overflow-y: auto;
-  margin-bottom: 16px;
 }
 
-.no-snapshots {
-  padding: 40px 20px;
-  text-align: center;
-  color: #6B7280;
-  font-size: 14px;
-}
-
-.snapshot-item {
+.workspace-tab-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
-  cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 8px;
 }
 
-.snapshot-item:last-child {
-  margin-bottom: 0;
-}
-
-.snapshot-item:hover {
+.workspace-tab-item:hover {
   background: #F9FAFB;
   border-color: #007AFF;
-  transform: translateY(-1px);
 }
 
-.dark .snapshot-item {
+.dark .workspace-tab-item {
   border-color: #374151;
 }
 
-.dark .snapshot-item:hover {
+.dark .workspace-tab-item:hover {
   background: #374151;
   border-color: #007AFF;
 }
 
-.snapshot-icon {
-  width: 32px;
-  height: 32px;
-  background: #F3F4F6;
-  border-radius: 8px;
+.workspace-tab-item .tab-icon {
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6B7280;
   flex-shrink: 0;
 }
 
-.dark .snapshot-icon {
-  background: #48484A;
-  color: #9CA3AF;
-}
-
-.snapshot-info {
+.workspace-tab-item .tab-info {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1312,7 +1241,7 @@ body {
   gap: 2px;
 }
 
-.snapshot-name {
+.workspace-tab-item .tab-title {
   font-size: 14px;
   font-weight: 500;
   color: #111827;
@@ -1321,48 +1250,80 @@ body {
   white-space: nowrap;
 }
 
-.dark .snapshot-name {
+.dark .workspace-tab-item .tab-title {
   color: #F9FAFB;
 }
 
-.snapshot-time {
+.workspace-tab-item .tab-url {
   font-size: 12px;
-  color: #007AFF;
-  font-weight: 500;
-}
-
-.snapshot-tabs {
-  font-size: 11px;
   color: #6B7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* 动画类 */
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
+.workspace-tab-item .tab-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  opacity: 1; /* 始终显示，不需要悬停 */
 }
 
-.slide-up {
-  animation: slideUp 0.3s ease-out;
+/* 覆盖之前的tab-action-btn样式，使其在workspace-tab-item中更突出 */
+.workspace-tab-item .tab-action-btn {
+  padding: 8px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.spring {
-  animation: spring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.workspace-tab-item .tab-action-btn:hover {
+  background: #F9FAFB;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 滚动条 */
-::-webkit-scrollbar {
-  width: 6px;
+.workspace-tab-item .tab-action-btn.open {
+  color: #007AFF;
+  border-color: #007AFF;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+.workspace-tab-item .tab-action-btn.open:hover {
+  background: #EBF5FF;
+  border-color: #0056CC;
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+.workspace-tab-item .tab-action-btn.remove {
+  color: #EF4444;
+  border-color: #EF4444;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+.workspace-tab-item .tab-action-btn.remove:hover {
+  background: #FEF2F2;
+  border-color: #DC2626;
+}
+
+.dark .workspace-tab-item .tab-action-btn {
+  background: #2C2C2E;
+  border-color: #48484A;
+}
+
+.dark .workspace-tab-item .tab-action-btn:hover {
+  background: #3A3A3C;
+}
+
+.dark .workspace-tab-item .tab-action-btn.open:hover {
+  background: #1E3A8A;
+}
+
+.dark .workspace-tab-item .tab-action-btn.remove:hover {
+  background: #7F1D1D;
 }
