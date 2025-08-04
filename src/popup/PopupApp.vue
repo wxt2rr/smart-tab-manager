@@ -396,35 +396,53 @@
 
     <!-- 会话恢复对话框 -->
     <div v-if="showRestoreDialog" class="workspace-selector-overlay" @click="showRestoreDialog = false">
-      <div class="workspace-selector-dialog restore-dialog" @click.stop>
-        <h3>{{ t('popup.systemActions.restoreDialog.title') }}</h3>
-        <p class="dialog-desc">{{ t('popup.systemActions.restoreDialog.description') }}</p>
+      <div class="workspace-selector-dialog workspace-tabs-dialog" @click.stop>
+        <h3>{{ isI18nReady ? t('popup.systemActions.restoreDialog.title') : '恢复会话' }}</h3>
+        <p class="dialog-desc">{{ isI18nReady ? t('popup.systemActions.restoreDialog.description') : '选择要恢复的会话快照' }}</p>
         
-        <div class="snapshots-list">
-          <div v-if="availableSnapshots.length === 0" class="no-snapshots">
-            <span>{{ t('popup.systemActions.restoreDialog.noSnapshots') }}</span>
+        <div class="workspace-tabs-list">
+          <div v-if="availableSnapshots.length === 0" class="no-tabs">
+            <FontAwesomeIcon icon="folder-open" class="w-8 h-8 opacity-50" />
+            <span>{{ isI18nReady ? t('popup.systemActions.restoreDialog.noSnapshots') : '暂无可用快照' }}</span>
           </div>
           <div 
             v-for="snapshot in availableSnapshots" 
             :key="snapshot.id"
-            class="snapshot-item"
-            @click="restoreFromSnapshot(snapshot)"
+            class="workspace-tab-item"
           >
-            <div class="snapshot-icon">
+            <div class="tab-icon">
               <FontAwesomeIcon icon="camera" class="w-4 h-4" />
             </div>
-            <div class="snapshot-info">
-              <span class="snapshot-name">{{ snapshot.name }}</span>
-              <span class="snapshot-time">{{ formatSnapshotTime(snapshot.timestamp) }}</span>
-              <span class="snapshot-tabs" v-if="snapshot.metadata?.totalTabs">
-                {{ snapshot.metadata.totalTabs }} {{ t('popup.systemActions.restoreDialog.tabsCount') }}
+            <div class="tab-info">
+              <span class="tab-title">{{ snapshot.name }}</span>
+              <span class="tab-url">{{ formatSnapshotTime(snapshot.timestamp) }}</span>
+              <span class="tab-url" v-if="snapshot.metadata?.totalTabs">
+                {{ snapshot.metadata.totalTabs }} {{ isI18nReady ? t('popup.systemActions.restoreDialog.tabsCount') : '个标签页' }}
               </span>
+            </div>
+            <div class="tab-actions">
+              <button 
+                class="tab-action-btn open"
+                @click="restoreFromSnapshot(snapshot)"
+                :title="isI18nReady ? t('popup.systemActions.restoreDialog.restoreButton') : '恢复快照'"
+              >
+                <FontAwesomeIcon icon="sync" class="w-3 h-3" />
+              </button>
+              <button 
+                class="tab-action-btn remove"
+                @click="deleteSnapshot(snapshot)"
+                :title="isI18nReady ? t('popup.systemActions.restoreDialog.deleteButton') : '删除快照'"
+              >
+                <FontAwesomeIcon icon="trash" class="w-3 h-3" />
+              </button>
             </div>
           </div>
         </div>
 
         <div class="dialog-actions">
-          <button class="btn-cancel" @click="showRestoreDialog = false">{{ t('popup.systemActions.restoreDialog.cancel') }}</button>
+          <button class="btn-cancel" @click="showRestoreDialog = false">
+            {{ isI18nReady ? t('popup.systemActions.restoreDialog.cancel') : '取消' }}
+          </button>
         </div>
       </div>
     </div>
@@ -1870,6 +1888,45 @@ async function deleteWorkspace(workspace: Workspace) {
       showNotification('error', 
         isI18nReady.value ? t('popup.workspaces.notifications.deleteFailed') : '删除失败', 
         isI18nReady.value ? t('popup.workspaces.notifications.deleteFailedMessage') : '无法删除分组')
+    }
+  }
+}
+
+async function deleteSnapshot(snapshot: any) {
+  const confirmTitle = isI18nReady.value ?
+    t('popup.systemActions.notifications.deleteSnapshotConfirm').replace('{name}', snapshot.name) :
+    `确定要删除快照 "${snapshot.name}" 吗？`
+  
+  const confirmMessage = isI18nReady.value ?
+    t('popup.systemActions.notifications.deleteSnapshotConfirmMessage') :
+    '删除后快照将无法恢复，此操作无法撤销。'
+  
+  const fullConfirmText = `${confirmTitle}\n\n${confirmMessage}`
+  
+  if (confirm(fullConfirmText)) {
+    try {
+      const success = await syncManager.deleteSnapshot(snapshot.id)
+      if (success) {
+        // 重新加载快照列表
+        const newSnapshots = await syncManager.getSnapshotList()
+        availableSnapshots.value = newSnapshots.slice(0, 10) // 限制显示最新10个
+        
+        const successMessage = isI18nReady.value ? 
+          `快照 "${snapshot.name}" 已删除` : 
+          `快照 "${snapshot.name}" 已删除`
+        showNotification('success', 
+          isI18nReady.value ? t('popup.systemActions.notifications.snapshotDeleted') : '快照已删除', 
+          successMessage)
+      } else {
+        showNotification('error', 
+          isI18nReady.value ? t('popup.systemActions.notifications.deleteSnapshotFailed') : '删除失败', 
+          isI18nReady.value ? t('popup.systemActions.notifications.deleteSnapshotFailedMessage') : '无法删除快照')
+      }
+    } catch (error) {
+      console.error('Error deleting snapshot:', error)
+      showNotification('error', 
+        isI18nReady.value ? t('popup.systemActions.notifications.deleteSnapshotFailed') : '删除失败', 
+        isI18nReady.value ? t('popup.systemActions.notifications.deleteSnapshotFailedMessage') : '无法删除快照')
     }
   }
 }

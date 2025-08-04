@@ -180,7 +180,12 @@ export const messages = {
           getSnapshotsFailed: '获取失败',
           getSnapshotsFailedMessage: '无法获取会话快照',
           restoreSuccess: '恢复成功',
-          restoreSuccessMessage: '已恢复 "{name}" 快照'
+          restoreSuccessMessage: '已恢复 "{name}" 快照',
+          deleteSnapshotConfirm: '确定要删除快照 "{name}" 吗？',
+          deleteSnapshotConfirmMessage: '删除后快照将无法恢复，此操作无法撤销。',
+          snapshotDeleted: '快照已删除',
+          deleteSnapshotFailed: '删除失败',
+          deleteSnapshotFailedMessage: '无法删除快照'
         },
         snapshotNames: {
           manualPrefix: '手动快照',
@@ -191,7 +196,9 @@ export const messages = {
           description: '选择要恢复的会话快照',
           noSnapshots: '暂无可用快照',
           tabsCount: '个标签页',
-          cancel: '取消'
+          cancel: '取消',
+          restoreButton: '恢复快照',
+          deleteButton: '删除快照'
         }
       },
       language: {
@@ -585,7 +592,12 @@ export const messages = {
           getSnapshotsFailed: 'Failed to get',
           getSnapshotsFailedMessage: 'Failed to get session snapshots',
           restoreSuccess: 'Restored successfully',
-          restoreSuccessMessage: 'Restored "{name}" snapshot'
+          restoreSuccessMessage: 'Restored "{name}" snapshot',
+          deleteSnapshotConfirm: 'Are you sure you want to delete snapshot "{name}"?',
+          deleteSnapshotConfirmMessage: 'After deletion, the snapshot cannot be restored, this action cannot be undone.',
+          snapshotDeleted: 'Snapshot deleted',
+          deleteSnapshotFailed: 'Delete failed',
+          deleteSnapshotFailedMessage: 'Failed to delete snapshot'
         },
         snapshotNames: {
           manualPrefix: 'Manual Snapshot',
@@ -596,7 +608,9 @@ export const messages = {
           description: 'Select the session snapshot to restore',
           noSnapshots: 'No snapshots available',
           tabsCount: 'tabs',
-          cancel: 'Cancel'
+          cancel: 'Cancel',
+          restoreButton: 'Restore Snapshot',
+          deleteButton: 'Delete Snapshot'
         }
       },
       language: {
