@@ -1,5 +1,6 @@
 import type { TabInfo, WindowInfo, Snapshot, Settings } from '@/types'
 import { storage, settings } from './storage'
+import { getTranslation } from './i18n'
 
 /**
  * 同步管理器 - 处理标签页自动同步和恢复
@@ -73,9 +74,18 @@ export class SyncManager {
       const windows = await this.getAllWindows()
       const timestamp = Date.now()
       
+      // 生成多语言的快照名称
+      let snapshotName = name
+      if (!name) {
+        const prefix = type === 'auto' ? 
+          getTranslation('popup.systemActions.snapshotNames.autoPrefix', '自动保存') : 
+          getTranslation('popup.systemActions.snapshotNames.manualPrefix', '手动快照')
+        snapshotName = `${prefix}_${new Date(timestamp).toLocaleString()}`
+      }
+      
       const snapshot: Snapshot = {
         id: `${type}_${timestamp}`,
-        name: name || `${type === 'auto' ? '自动保存' : '手动快照'}_${new Date(timestamp).toLocaleString()}`,
+        name: snapshotName,
         timestamp,
         type,
         windows,

@@ -43,30 +43,134 @@ export const messages = {
         sortTime: '时间排序',
         sortDomain: '域名排序',
         sortGroup: '分组显示',
+        currentSort: '当前排序',
         filterAll: '全部',
         filterActive: '活跃',
         filterPinned: '固定',
         filterDuplicate: '重复',
         noTabs: '暂无标签页',
-        noMatchingTabs: '没有符合条件的标签页'
+        noMatchingTabs: '没有符合条件的标签页',
+        closeTab: '关闭标签页'
       },
       workspaces: {
         title: '分组',
         newWorkspace: '新建分组',
         open: '打开分组',
-        edit: '编辑分组'
+        edit: '编辑分组',
+        selector: {
+          title: '选择分组',
+          description: '将 "{title}" 添加到哪个分组？',
+          tabsCount: '个标签页',
+          cancel: '取消'
+        },
+        prompts: {
+          createName: '请输入分组名称：',
+          editName: '请输入新的分组名称：',
+          defaultName: '分组 {number}'
+        },
+        notifications: {
+          tabExists: '标签页已存在',
+          tabExistsMessage: '"{title}" 已在分组中',
+          addSuccess: '添加成功',
+          addSuccessMessage: '已添加到 "{name}"',
+          workspaceOpened: '工作空间已打开',
+          workspaceOpenedMessage: '打开了 {count} 个标签页',
+          openFailed: '打开失败',
+          openFailedMessage: '无法打开工作空间',
+          updateSuccess: '分组已更新',
+          updateSuccessMessage: '分组名称已更改为 "{name}"',
+          updateFailed: '更新失败',
+          updateFailedMessage: '无法更新分组名称',
+          createSuccess: '分组已创建',
+          createFailed: '创建失败',
+          createFailedMessage: '无法创建分组'
+        }
       },
       tabActions: {
         title: '标签页操作',
         newTab: '新标签页',
-        duplicateTab: '复制标签页'
+        duplicateTab: '复制标签页',
+        newTabPrompt: '请输入要打开的网址：',
+        newTabDefault: 'https://',
+        notifications: {
+          newTabCreated: '新标签页已创建',
+          newTabCreatedMessage: '✅ 已成功打开新的标签页',
+          duplicateTabWarning: '已创建重复标签页',
+          duplicateTabWarningMessage: '⚠️ 已打开新标签页，但检测到 {count} 个重复页面',
+          createFailed: '创建失败',
+          createFailedMessage: '❌ 无法创建新标签页，请重试',
+          tabDuplicated: '标签页已复制',
+          tabDuplicatedMessage: '✅ 已成功复制当前标签页',
+          duplicateTabCreated: '已创建重复标签页',
+          duplicateTabCreatedMessage: '⚠️ 已复制标签页，现在共有 {count} 个相同页面',
+          operationCancelled: '操作已取消',
+          operationCancelledMessage: '已取消复制重复标签页',
+          duplicateFailed: '复制失败',
+          duplicateFailedMessage: '❌ 无法复制当前标签页，请重试',
+          duplicateFailedNoTab: '❌ 无法获取当前标签页信息',
+          tabClosed: '标签页已关闭',
+          tabClosedMessage: '已关闭 "{title}"',
+          closeFailed: '关闭失败',
+          closeFailedMessage: '无法关闭标签页'
+        },
+        duplicateDialog: {
+          title: '⚠️ 检测到重复页面！',
+          message: '当前页面与以下页面重复：\n{info}\n\n❓ 是否仍要复制当前标签页？\n\n✅ 点击"确定"：复制标签页\n❌ 点击"取消"：不复制'
+        }
+      },
+      cleanup: {
+        dialog: {
+          title: '清理重复页面',
+          description: '发现 {count} 组重复页面，将保留每组的第一个标签页',
+          groupCount: '个',
+          keep: '保留',
+          close: '关闭',
+          moreTabs: '还有 {count} 个标签页将被关闭',
+          moreGroups: '还有 {count} 组重复页面...',
+          cancel: '取消',
+          confirm: '确认清理'
+        },
+        notifications: {
+          completed: '清理完成',
+          completedMessage: '已关闭 {count} 个重复标签页',
+          nothingClosed: '无法清理',
+          nothingClosedMessage: '没有成功关闭任何标签页',
+          failed: '清理失败',
+          failedMessage: '清理过程中出现错误'
+        }
       },
       systemActions: {
         title: '系统操作',
         sync: '同步',
         snapshot: '快照',
         restore: '恢复',
-        cleanup: '清理'
+        cleanup: '清理',
+        notifications: {
+          snapshotCreated: '快照已创建',
+          snapshotCreateFailed: '创建失败',
+          snapshotCreateFailedMessage: '无法创建快照',
+          syncCompleted: '同步完成',
+          syncCompletedMessage: '会话已保存',
+          syncFailed: '同步失败',
+          syncFailedMessage: '请稍后重试',
+          noSnapshots: '没有快照',
+          noSnapshotsMessage: '没有可恢复的会话快照',
+          getSnapshotsFailed: '获取失败',
+          getSnapshotsFailedMessage: '无法获取会话快照',
+          restoreSuccess: '恢复成功',
+          restoreSuccessMessage: '已恢复 "{name}" 快照'
+        },
+        snapshotNames: {
+          manualPrefix: '手动快照',
+          autoPrefix: '自动快照'
+        },
+        restoreDialog: {
+          title: '恢复会话',
+          description: '选择要恢复的会话快照',
+          noSnapshots: '暂无可用快照',
+          tabsCount: '个标签页',
+          cancel: '取消'
+        }
       },
       language: {
         switch: '切换语言',
@@ -247,7 +351,23 @@ export const messages = {
       workspaceOpened: '工作空间已打开',
       snapshotCreated: '快照已创建',
       settingsSaved: '设置已保存',
-      languageChanged: '语言已切换'
+      languageChanged: '语言已切换',
+      // Popup相关通知
+      duplicateFound: '发现重复页面',
+      duplicateFoundMessage: '找到 {count} 个重复页面',
+      detectionFailed: '检测失败',
+      detectionFailedMessage: '无法检测重复页面',
+      noWorkspace: '没有分组',
+      noWorkspaceMessage: '请先创建一个分组',
+      addFailed: '添加失败',
+      addFailedMessage: '无法添加到分组',
+      noCleanupNeeded: '无需清理',
+      noCleanupNeededMessage: '没有发现重复页面',
+      duplicateDialog: '⚠️ 发现重复页面！\n\n重复页面：{info}\n\n❓ 您希望如何处理？\n\n✅ 点击"确定"：仍然打开新标签页\n❌ 点击"取消"：切换到现有页面',
+      switchedToExisting: '已切换到现有页面',
+      switchedToExistingMessage: '已切换到现有的标签页：{title}',
+      restoreFailed: '恢复失败',
+      restoreFailedMessage: '无法恢复会话快照'
     },
     
     // 重复检测对话框
@@ -258,6 +378,11 @@ export const messages = {
       keepTab: '保留此页面',
       closeTab: '关闭并切换',
       background: '点击背景或按ESC键取消'
+    },
+    
+    // 后台脚本
+    background: {
+      closeSnapshot: '浏览器关闭前保存'
     }
   },
   
@@ -301,30 +426,134 @@ export const messages = {
         sortTime: 'Sort by time',
         sortDomain: 'Sort by domain',
         sortGroup: 'Group display',
+        currentSort: 'Current sort',
         filterAll: 'All',
         filterActive: 'Active',
         filterPinned: 'Pinned',
         filterDuplicate: 'Duplicates',
         noTabs: 'No tabs',
-        noMatchingTabs: 'No matching tabs'
+        noMatchingTabs: 'No matching tabs',
+        closeTab: 'Close Tab'
       },
       workspaces: {
         title: 'Workspaces',
         newWorkspace: 'New Workspace',
         open: 'Open Workspace',
-        edit: 'Edit Workspace'
+        edit: 'Edit Workspace',
+        selector: {
+          title: 'Select Workspace',
+          description: 'Add "{title}" to which workspace?',
+          tabsCount: 'tabs',
+          cancel: 'Cancel'
+        },
+        prompts: {
+          createName: 'Please enter workspace name:',
+          editName: 'Please enter new workspace name:',
+          defaultName: 'Workspace {number}'
+        },
+        notifications: {
+          tabExists: 'Tab already exists',
+          tabExistsMessage: '"{title}" already in workspace',
+          addSuccess: 'Added successfully',
+          addSuccessMessage: 'Added to "{name}"',
+          workspaceOpened: 'Workspace opened',
+          workspaceOpenedMessage: 'Opened {count} tabs',
+          openFailed: 'Failed to open workspace',
+          openFailedMessage: 'Failed to open workspace',
+          updateSuccess: 'Workspace updated',
+          updateSuccessMessage: 'Workspace name changed to "{name}"',
+          updateFailed: 'Update failed',
+          updateFailedMessage: 'Failed to update workspace name',
+          createSuccess: 'Workspace created',
+          createFailed: 'Creation failed',
+          createFailedMessage: 'Failed to create workspace'
+        }
       },
       tabActions: {
         title: 'Tab Actions',
         newTab: 'New Tab',
-        duplicateTab: 'Duplicate Tab'
+        duplicateTab: 'Duplicate Tab',
+        newTabPrompt: 'Please enter the URL to open:',
+        newTabDefault: 'https://',
+        notifications: {
+          newTabCreated: 'New tab created',
+          newTabCreatedMessage: '✅ New tab successfully opened',
+          duplicateTabWarning: 'Duplicate tab created',
+          duplicateTabWarningMessage: '⚠️ New tab opened, but {count} duplicate pages detected',
+          createFailed: 'Creation failed',
+          createFailedMessage: '❌ Failed to create new tab, please try again',
+          tabDuplicated: 'Tab duplicated',
+          tabDuplicatedMessage: '✅ Current tab successfully duplicated',
+          duplicateTabCreated: 'Duplicate tab created',
+          duplicateTabCreatedMessage: '⚠️ Current tab duplicated, now there are {count} identical pages',
+          operationCancelled: 'Operation cancelled',
+          operationCancelledMessage: 'Duplicate tab duplication cancelled',
+          duplicateFailed: 'Duplication failed',
+          duplicateFailedMessage: '❌ Failed to duplicate current tab, please try again',
+          duplicateFailedNoTab: '❌ Failed to get current tab information',
+          tabClosed: 'Tab closed',
+          tabClosedMessage: 'Closed "{title}"',
+          closeFailed: 'Failed to close tab',
+          closeFailedMessage: 'Failed to close tab'
+        },
+        duplicateDialog: {
+          title: '⚠️ Duplicate page detected!',
+          message: 'Current page duplicates with following pages:\n{info}\n\n❓ Do you still want to duplicate the current tab?\n\n✅ Click "OK": Duplicate tab\n❌ Click "Cancel": Do not duplicate'
+        }
+      },
+      cleanup: {
+        dialog: {
+          title: 'Clean up duplicate pages',
+          description: 'Found {count} duplicate groups, the first tab of each group will be kept',
+          groupCount: 'groups',
+          keep: 'Keep',
+          close: 'Close',
+          moreTabs: 'There are {count} tabs to be closed',
+          moreGroups: 'There are {count} duplicate groups...',
+          cancel: 'Cancel',
+          confirm: 'Confirm cleanup'
+        },
+        notifications: {
+          completed: 'Cleanup completed',
+          completedMessage: 'Closed {count} duplicate tabs',
+          nothingClosed: 'Nothing to clean up',
+          nothingClosedMessage: 'No tabs successfully closed',
+          failed: 'Cleanup failed',
+          failedMessage: 'An error occurred during cleanup'
+        }
       },
       systemActions: {
         title: 'System Actions',
         sync: 'Sync',
         snapshot: 'Snapshot',
         restore: 'Restore',
-        cleanup: 'Cleanup'
+        cleanup: 'Cleanup',
+        notifications: {
+          snapshotCreated: 'Snapshot created',
+          snapshotCreateFailed: 'Creation failed',
+          snapshotCreateFailedMessage: 'Failed to create snapshot',
+          syncCompleted: 'Sync completed',
+          syncCompletedMessage: 'Session saved',
+          syncFailed: 'Sync failed',
+          syncFailedMessage: 'Please try again later',
+          noSnapshots: 'No snapshots',
+          noSnapshotsMessage: 'No session snapshots available for restoration',
+          getSnapshotsFailed: 'Failed to get',
+          getSnapshotsFailedMessage: 'Failed to get session snapshots',
+          restoreSuccess: 'Restored successfully',
+          restoreSuccessMessage: 'Restored "{name}" snapshot'
+        },
+        snapshotNames: {
+          manualPrefix: 'Manual Snapshot',
+          autoPrefix: 'Auto Snapshot'
+        },
+        restoreDialog: {
+          title: 'Restore Session',
+          description: 'Select the session snapshot to restore',
+          noSnapshots: 'No snapshots available',
+          tabsCount: 'tabs',
+          cancel: 'Cancel'
+        }
       },
       language: {
         switch: 'Switch Language',
@@ -505,7 +734,23 @@ export const messages = {
       workspaceOpened: 'Workspace opened',
       snapshotCreated: 'Snapshot created',
       settingsSaved: 'Settings saved',
-      languageChanged: 'Language switched'
+      languageChanged: 'Language switched',
+      // Popup相关通知
+      duplicateFound: 'Duplicate page detected',
+      duplicateFoundMessage: 'Found {count} duplicate pages',
+      detectionFailed: 'Detection failed',
+      detectionFailedMessage: 'Failed to detect duplicate pages',
+      noWorkspace: 'No workspace',
+      noWorkspaceMessage: 'Please create a workspace first',
+      addFailed: 'Add failed',
+      addFailedMessage: 'Failed to add to workspace',
+      noCleanupNeeded: 'No cleanup needed',
+      noCleanupNeededMessage: 'No duplicate pages found',
+      duplicateDialog: '⚠️ Duplicate page detected!\n\nDuplicate pages: {info}\n\n❓ How would you like to handle this?\n\n✅ Click "OK": Open new tab\n❌ Click "Cancel": Switch to existing page',
+      switchedToExisting: 'Switched to existing page',
+      switchedToExistingMessage: 'Switched to existing tab: {title}',
+      restoreFailed: 'Restore failed',
+      restoreFailedMessage: 'Failed to restore session snapshot'
     },
     
     // Duplicate Dialog
@@ -516,6 +761,11 @@ export const messages = {
       keepTab: 'Keep this page',
       closeTab: 'Close and switch',
       background: 'Click background or press ESC to cancel'
+    },
+    
+    // Background script
+    background: {
+      closeSnapshot: 'Saved before browser close'
     }
   }
 }
@@ -534,6 +784,26 @@ function updateTranslations() {
   // 清空并重新填充翻译对象
   Object.keys(t).forEach(key => delete t[key])
   Object.assign(t, translations)
+}
+
+// 独立的翻译函数，可以在工具类中使用
+export function getTranslation(key: string, fallback?: string): string {
+  try {
+    const keys = key.split('.')
+    let result: any = t
+    
+    for (const k of keys) {
+      if (result && typeof result === 'object' && k in result) {
+        result = result[k]
+      } else {
+        return fallback || key
+      }
+    }
+    
+    return typeof result === 'string' ? result : (fallback || key)
+  } catch (error) {
+    return fallback || key
+  }
 }
 
 // 翻译函数

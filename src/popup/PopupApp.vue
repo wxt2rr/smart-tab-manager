@@ -64,7 +64,7 @@
         <button 
           class="tab-sort-btn"
           @click="toggleTabSort"
-          :title="`当前排序: ${tabSortLabels[tabSortMode]}`"
+          :title="getSortButtonTitle()"
         >
           <span class="sort-icon">{{ tabSortMode === 'time' ? '🕐' : (tabSortMode === 'domain' ? '🌐' : '📂') }}</span>
         </button>
@@ -140,7 +140,7 @@
                     <button 
                       class="tab-action close"
                       @click.stop="closeTab(tab)"
-                      title="关闭标签页"
+                      :title="t('popup.tabs.closeTab')"
                     >
                       <span class="close-icon">×</span>
                     </button>
@@ -198,7 +198,7 @@
                 <button 
                   class="tab-action close"
                   @click.stop="closeTab(tab)"
-                  title="关闭标签页"
+                  :title="t('popup.tabs.closeTab')"
                 >
                   <span class="close-icon">×</span>
                 </button>
@@ -252,14 +252,14 @@
             <button 
               class="workspace-action"
               @click.stop="openWorkspace(workspace)"
-              title="打开分组"
+              :title="t('popup.workspaces.open')"
             >
               <FontAwesomeIcon icon="play" class="w-3 h-3" />
             </button>
             <button 
               class="workspace-action"
               @click.stop="editWorkspace(workspace)"
-              title="编辑分组"
+              :title="t('popup.workspaces.edit')"
             >
               <FontAwesomeIcon icon="edit" class="w-3 h-3" />
             </button>
@@ -326,8 +326,8 @@
     <!-- 分组选择对话框 -->
     <div v-if="showWorkspaceSelectorDialog" class="workspace-selector-overlay" @click="showWorkspaceSelectorDialog = false">
       <div class="workspace-selector-dialog" @click.stop>
-        <h3>选择分组</h3>
-        <p class="dialog-desc">将 "{{ selectedTabForWorkspace?.title }}" 添加到哪个分组？</p>
+        <h3>{{ t('popup.workspaces.selector.title') }}</h3>
+        <p class="dialog-desc">{{ t('popup.workspaces.selector.description').replace('{title}', selectedTabForWorkspace?.title || '') }}</p>
         <div class="workspace-list">
           <div 
             v-for="workspace in workspaces" 
@@ -340,12 +340,12 @@
             </div>
             <div class="workspace-info">
               <span class="workspace-name">{{ workspace.name }}</span>
-              <span class="workspace-count">{{ workspace.tabs.length }} 个标签页</span>
+              <span class="workspace-count">{{ workspace.tabs.length }} {{ t('popup.workspaces.selector.tabsCount') }}</span>
             </div>
           </div>
         </div>
         <div class="dialog-actions">
-          <button class="btn-cancel" @click="showWorkspaceSelectorDialog = false">取消</button>
+          <button class="btn-cancel" @click="showWorkspaceSelectorDialog = false">{{ t('popup.workspaces.selector.cancel') }}</button>
         </div>
       </div>
     </div>
@@ -353,36 +353,36 @@
     <!-- 重复页面清理对话框 -->
     <div v-if="showCleanupDialog" class="workspace-selector-overlay" @click="showCleanupDialog = false">
       <div class="workspace-selector-dialog cleanup-dialog" @click.stop>
-        <h3>清理重复页面</h3>
-        <p class="dialog-desc">发现 {{ duplicateGroups.length }} 组重复页面，将保留每组的第一个标签页</p>
+        <h3>{{ t('popup.cleanup.dialog.title') }}</h3>
+        <p class="dialog-desc">{{ t('popup.cleanup.dialog.description').replace('{count}', duplicateGroups.length.toString()) }}</p>
         
         <div class="duplicate-preview">
           <div v-for="(group, index) in duplicateGroups.slice(0, 3)" :key="index" class="duplicate-group">
             <div class="group-title">
               <span class="group-icon">🔗</span>
               <span>{{ truncateText(group.tabs[0]?.title || '未知页面', 25) }}</span>
-              <span class="duplicate-count">({{ group.tabs.length }}个)</span>
+              <span class="duplicate-count">({{ group.tabs.length }}{{ t('popup.cleanup.dialog.groupCount') }})</span>
             </div>
             <div class="tabs-preview">
               <div v-for="(tab, tabIndex) in group.tabs.slice(0, 2)" :key="tab.id" class="tab-preview">
                 <span class="tab-status" :class="{ 'keep': tabIndex === 0, 'close': tabIndex > 0 }">
-                  {{ tabIndex === 0 ? '保留' : '关闭' }}
+                  {{ tabIndex === 0 ? t('popup.cleanup.dialog.keep') : t('popup.cleanup.dialog.close') }}
                 </span>
                 <span class="tab-domain">{{ getDomain(tab.url) }}</span>
               </div>
               <div v-if="group.tabs.length > 2" class="more-tabs">
-                还有 {{ group.tabs.length - 2 }} 个标签页将被关闭
+                {{ t('popup.cleanup.dialog.moreTabs').replace('{count}', (group.tabs.length - 2).toString()) }}
               </div>
             </div>
           </div>
           <div v-if="duplicateGroups.length > 3" class="more-groups">
-            还有 {{ duplicateGroups.length - 3 }} 组重复页面...
+            {{ t('popup.cleanup.dialog.moreGroups').replace('{count}', (duplicateGroups.length - 3).toString()) }}
           </div>
         </div>
 
         <div class="dialog-actions">
-          <button class="btn-cancel" @click="showCleanupDialog = false">取消</button>
-          <button class="btn-danger" @click="confirmCleanDuplicates">确认清理</button>
+          <button class="btn-cancel" @click="showCleanupDialog = false">{{ t('popup.cleanup.dialog.cancel') }}</button>
+          <button class="btn-danger" @click="confirmCleanDuplicates">{{ t('popup.cleanup.dialog.confirm') }}</button>
         </div>
       </div>
     </div>
@@ -390,12 +390,12 @@
     <!-- 会话恢复对话框 -->
     <div v-if="showRestoreDialog" class="workspace-selector-overlay" @click="showRestoreDialog = false">
       <div class="workspace-selector-dialog restore-dialog" @click.stop>
-        <h3>恢复会话</h3>
-        <p class="dialog-desc">选择要恢复的会话快照</p>
+        <h3>{{ t('popup.systemActions.restoreDialog.title') }}</h3>
+        <p class="dialog-desc">{{ t('popup.systemActions.restoreDialog.description') }}</p>
         
         <div class="snapshots-list">
           <div v-if="availableSnapshots.length === 0" class="no-snapshots">
-            <span>暂无可用快照</span>
+            <span>{{ t('popup.systemActions.restoreDialog.noSnapshots') }}</span>
           </div>
           <div 
             v-for="snapshot in availableSnapshots" 
@@ -410,14 +410,14 @@
               <span class="snapshot-name">{{ snapshot.name }}</span>
               <span class="snapshot-time">{{ formatSnapshotTime(snapshot.timestamp) }}</span>
               <span class="snapshot-tabs" v-if="snapshot.metadata?.totalTabs">
-                {{ snapshot.metadata.totalTabs }} 个标签页
+                {{ snapshot.metadata.totalTabs }} {{ t('popup.systemActions.restoreDialog.tabsCount') }}
               </span>
             </div>
           </div>
         </div>
 
         <div class="dialog-actions">
-          <button class="btn-cancel" @click="showRestoreDialog = false">取消</button>
+          <button class="btn-cancel" @click="showRestoreDialog = false">{{ t('popup.systemActions.restoreDialog.cancel') }}</button>
         </div>
       </div>
     </div>
@@ -447,6 +447,9 @@ import { useI18n } from '@/utils/i18n'
 // 多语言支持
 const { t, currentLanguage, toggleLanguage, initLanguage } = useI18n()
 
+// 多语言初始化状态
+const isI18nReady = ref(false)
+
 // 响应式数据
 const isDarkMode = ref(false)
 const showCommandPalette = ref(false)
@@ -468,31 +471,86 @@ const duplicateTabs = ref<Set<string>>(new Set())
 const tabSortMode = ref<'time' | 'domain' | 'group'>('time')
 const activeTabFilter = ref<'all' | 'active' | 'pinned' | 'duplicate'>('all')
 
-const tabSortLabels = {
-  time: '时间排序',
-  domain: '域名排序', 
-  group: '分组显示'
-}
+const tabSortLabels = computed(() => {
+  if (!isI18nReady.value) {
+    return {
+      time: '时间排序',
+      domain: '域名排序', 
+      group: '分组显示'
+    }
+  }
+  
+  try {
+    return {
+      time: t('popup.tabs.sortTime') || '时间排序',
+      domain: t('popup.tabs.sortDomain') || '域名排序', 
+      group: t('popup.tabs.sortGroup') || '分组显示'
+    }
+  } catch (error) {
+    return {
+      time: '时间排序',
+      domain: '域名排序', 
+      group: '分组显示'
+    }
+  }
+})
 
-const tabFilters = [
-  { key: 'all', label: '全部', icon: '📄' },
-  { key: 'active', label: '活跃', icon: '●' },
-  { key: 'pinned', label: '固定', icon: '📌' },
-  { key: 'duplicate', label: '重复', icon: '⚠️' }
-]
+const tabFilters = computed(() => {
+  if (!isI18nReady.value) {
+    return [
+      { key: 'all', label: '全部', icon: '📄' },
+      { key: 'active', label: '活跃', icon: '●' },
+      { key: 'pinned', label: '固定', icon: '📌' },
+      { key: 'duplicate', label: '重复', icon: '⚠️' }
+    ]
+  }
+  
+  try {
+    return [
+      { key: 'all', label: t('popup.tabs.filterAll') || '全部', icon: '📄' },
+      { key: 'active', label: t('popup.tabs.filterActive') || '活跃', icon: '●' },
+      { key: 'pinned', label: t('popup.tabs.filterPinned') || '固定', icon: '📌' },
+      { key: 'duplicate', label: t('popup.tabs.filterDuplicate') || '重复', icon: '⚠️' }
+    ]
+  } catch (error) {
+    return [
+      { key: 'all', label: '全部', icon: '📄' },
+      { key: 'active', label: '活跃', icon: '●' },
+      { key: 'pinned', label: '固定', icon: '📌' },
+      { key: 'duplicate', label: '重复', icon: '⚠️' }
+    ]
+  }
+})
 
 // 计算属性  
 const formatTime = computed(() => (timestamp: number) => {
-  if (!timestamp || timestamp === 0) return t('popup.overview.notSynced')
+  if (!isI18nReady.value) {
+    if (!timestamp || timestamp === 0) return '未同步'
+    
+    const now = Date.now()
+    const diff = now - timestamp
+    
+    if (diff < 0) return '刚刚同步'
+    if (diff < 60000) return '刚刚同步'
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
+    return `${Math.floor(diff / 86400000)} 天前`
+  }
   
-  const now = Date.now()
-  const diff = now - timestamp
-  
-  if (diff < 0) return t('popup.overview.lastSync') // 防止未来时间
-  if (diff < 60000) return t('popup.overview.lastSync')
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} ${t('popup.overview.minutesAgo')}`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} ${t('popup.overview.hoursAgo')}`
-  return `${Math.floor(diff / 86400000)} ${t('popup.overview.daysAgo')}`
+  try {
+    if (!timestamp || timestamp === 0) return t('popup.overview.notSynced') || '未同步'
+    
+    const now = Date.now()
+    const diff = now - timestamp
+    
+    if (diff < 0) return t('popup.overview.lastSync') || '刚刚同步' // 防止未来时间
+    if (diff < 60000) return t('popup.overview.lastSync') || '刚刚同步'
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} ${t('popup.overview.minutesAgo') || '分钟前'}`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} ${t('popup.overview.hoursAgo') || '小时前'}`
+    return `${Math.floor(diff / 86400000)} ${t('popup.overview.daysAgo') || '天前'}`
+  } catch (error) {
+    return '未知时间'
+  }
 })
 
 const formatSnapshotTime = computed(() => (timestamp: number) => {
@@ -609,6 +667,7 @@ onMounted(async () => {
   
   // 初始化多语言
   await initLanguage()
+  isI18nReady.value = true
   
   // 首先设置事件监听器
   setupEventListeners()
@@ -1032,17 +1091,17 @@ async function handleDuplicate(tab: TabInfo) {
     const duplicates = await duplicateDetector.detectNewTabDuplicates(tab)
     if (duplicates.length > 0) {
       // 显示重复处理界面
-      showNotification('info', '发现重复页面', `找到 ${duplicates.length} 个重复页面`)
+      showNotification('info', t('notifications.duplicateFound'), t('notifications.duplicateFoundMessage').replace('{count}', duplicates.length.toString()))
     }
   } catch (error) {
-    showNotification('error', '检测失败', '无法检测重复页面')
+    showNotification('error', t('notifications.detectionFailed'), t('notifications.detectionFailedMessage'))
   }
 }
 
 async function addToWorkspace(tab: TabInfo) {
   try {
     if (workspaces.value.length === 0) {
-      showNotification('info', '没有分组', '请先创建一个分组')
+      showNotification('info', t('notifications.noWorkspace'), t('notifications.noWorkspaceMessage'))
       return
     }
 
@@ -1056,7 +1115,7 @@ async function addToWorkspace(tab: TabInfo) {
     showWorkspaceSelector(tab)
   } catch (error) {
     console.error('Error adding tab to workspace:', error)
-    showNotification('error', '添加失败', '无法添加到分组')
+    showNotification('error', t('notifications.addFailed'), t('notifications.addFailedMessage'))
   }
 }
 
@@ -1081,7 +1140,12 @@ async function addTabToSpecificWorkspace(tab: TabInfo, workspace: Workspace) {
   // 检查是否已存在
   const exists = workspace.tabs.some(existingTab => existingTab.url === tab.url)
   if (exists) {
-    showNotification('info', '标签页已存在', `"${tab.title}" 已在分组中`)
+    const message = isI18nReady.value ? 
+      t('popup.workspaces.notifications.tabExistsMessage').replace('{title}', tab.title) : 
+      `"${tab.title}" 已在分组中`
+    showNotification('info', 
+      isI18nReady.value ? t('popup.workspaces.notifications.tabExists') : '标签页已存在', 
+      message)
     return
   }
 
@@ -1091,7 +1155,12 @@ async function addTabToSpecificWorkspace(tab: TabInfo, workspace: Workspace) {
   workspace.tabs.push(tabToAdd)
   workspace.updatedAt = Date.now()
   
-  showNotification('success', '添加成功', `已添加到 "${workspace.name}"`)
+  const successMessage = isI18nReady.value ? 
+    t('popup.workspaces.notifications.addSuccessMessage').replace('{name}', workspace.name) : 
+    `已添加到 "${workspace.name}"`
+  showNotification('success', 
+    isI18nReady.value ? t('popup.workspaces.notifications.addSuccess') : '添加成功', 
+    successMessage)
 }
 
 async function selectWorkspaceForTab(workspace: Workspace) {
@@ -1105,16 +1174,26 @@ async function selectWorkspaceForTab(workspace: Workspace) {
 async function openWorkspace(workspace: Workspace) {
   try {
     await workspaceManager.openWorkspace(workspace.id)
-    showNotification('success', '工作空间已打开', `打开了 ${workspace.tabs.length} 个标签页`)
+    const successMessage = isI18nReady.value ? 
+      t('popup.workspaces.notifications.workspaceOpenedMessage').replace('{count}', workspace.tabs.length.toString()) : 
+      `打开了 ${workspace.tabs.length} 个标签页`
+    showNotification('success', 
+      isI18nReady.value ? t('popup.workspaces.notifications.workspaceOpened') : '工作空间已打开', 
+      successMessage)
     window.close()
   } catch (error) {
-    showNotification('error', '打开失败', '无法打开工作空间')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.workspaces.notifications.openFailed') : '打开失败', 
+      isI18nReady.value ? t('popup.workspaces.notifications.openFailedMessage') : '无法打开工作空间')
   }
 }
 
 async function editWorkspace(workspace: Workspace) {
   try {
-    const newName = prompt('请输入新的分组名称：', workspace.name)
+    const promptText = isI18nReady.value ? 
+      t('popup.workspaces.prompts.editName') : 
+      '请输入新的分组名称：'
+    const newName = prompt(promptText, workspace.name)
     if (!newName || newName.trim() === '') return // 用户取消或输入为空
     
     const trimmedName = newName.trim()
@@ -1127,16 +1206,29 @@ async function editWorkspace(workspace: Workspace) {
     workspace.name = trimmedName
     workspace.updatedAt = Date.now()
     
-    showNotification('success', '分组已更新', `分组名称已更改为 "${trimmedName}"`)
+    const successMessage = isI18nReady.value ? 
+      t('popup.workspaces.notifications.updateSuccessMessage').replace('{name}', trimmedName) : 
+      `分组名称已更改为 "${trimmedName}"`
+    showNotification('success', 
+      isI18nReady.value ? t('popup.workspaces.notifications.updateSuccess') : '分组已更新', 
+      successMessage)
   } catch (error) {
     console.error('Error editing workspace:', error)
-    showNotification('error', '更新失败', '无法更新分组名称')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.workspaces.notifications.updateFailed') : '更新失败', 
+      isI18nReady.value ? t('popup.workspaces.notifications.updateFailedMessage') : '无法更新分组名称')
   }
 }
 
 async function createWorkspace() {
   try {
-    const name = prompt('请输入分组名称：', `分组 ${workspaces.value.length + 1}`)
+    const promptText = isI18nReady.value ? 
+      t('popup.workspaces.prompts.createName') : 
+      '请输入分组名称：'
+    const defaultName = isI18nReady.value ? 
+      t('popup.workspaces.prompts.defaultName').replace('{number}', (workspaces.value.length + 1).toString()) : 
+      `分组 ${workspaces.value.length + 1}`
+    const name = prompt(promptText, defaultName)
     if (!name || name.trim() === '') return // 用户取消或输入为空
     
     const workspace = await workspaceManager.createWorkspace({
@@ -1146,9 +1238,13 @@ async function createWorkspace() {
       tabs: []
     })
     workspaces.value.push(workspace)
-    showNotification('success', '分组已创建', workspace.name)
+    showNotification('success', 
+      isI18nReady.value ? t('popup.workspaces.notifications.createSuccess') : '分组已创建', 
+      workspace.name)
   } catch (error) {
-    showNotification('error', '创建失败', '无法创建分组')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.workspaces.notifications.createFailed') : '创建失败', 
+      isI18nReady.value ? t('popup.workspaces.notifications.createFailedMessage') : '无法创建分组')
   }
 }
 
@@ -1157,23 +1253,37 @@ async function syncNow() {
     const snapshot = await syncManager.createSnapshot('manual')
     if (snapshot) {
       stats.lastSyncTime = snapshot.timestamp
-      showNotification('success', '同步完成', '会话已保存')
+      showNotification('success', 
+        isI18nReady.value ? t('popup.systemActions.notifications.syncCompleted') : '同步完成', 
+        isI18nReady.value ? t('popup.systemActions.notifications.syncCompletedMessage') : '会话已保存')
     } else {
-      showNotification('error', '同步失败', '请稍后重试')
+      showNotification('error', 
+        isI18nReady.value ? t('popup.systemActions.notifications.syncFailed') : '同步失败', 
+        isI18nReady.value ? t('popup.systemActions.notifications.syncFailedMessage') : '请稍后重试')
     }
   } catch (error) {
-    showNotification('error', '同步失败', '请稍后重试')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.systemActions.notifications.syncFailed') : '同步失败', 
+      isI18nReady.value ? t('popup.systemActions.notifications.syncFailedMessage') : '请稍后重试')
   }
 }
 
 async function createSnapshot() {
   try {
-    const snapshot = await syncManager.createSnapshot('manual', `手动快照_${new Date().toLocaleString()}`)
+    const snapshotPrefix = isI18nReady.value ? 
+      t('popup.systemActions.snapshotNames.manualPrefix') : 
+      '手动快照'
+    const snapshotName = `${snapshotPrefix}_${new Date().toLocaleString()}`
+    const snapshot = await syncManager.createSnapshot('manual', snapshotName)
     if (snapshot) {
-      showNotification('success', '快照已创建', snapshot.name)
+      showNotification('success', 
+        isI18nReady.value ? t('popup.systemActions.notifications.snapshotCreated') : '快照已创建', 
+        snapshot.name)
     }
   } catch (error) {
-    showNotification('error', '创建失败', '无法创建快照')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.systemActions.notifications.snapshotCreateFailed') : '创建失败', 
+      isI18nReady.value ? t('popup.systemActions.notifications.snapshotCreateFailedMessage') : '无法创建快照')
   }
 }
 
@@ -1181,14 +1291,18 @@ async function restoreSession() {
   try {
     const snapshots = await syncManager.getSnapshotList()
     if (snapshots.length === 0) {
-      showNotification('info', '没有快照', '没有可恢复的会话快照')
+      showNotification('info', 
+        isI18nReady.value ? t('popup.systemActions.notifications.noSnapshots') : '没有快照', 
+        isI18nReady.value ? t('popup.systemActions.notifications.noSnapshotsMessage') : '没有可恢复的会话快照')
       return
     }
     
     showSessionRestoreDialog(snapshots)
   } catch (error) {
     console.error('Error getting snapshots:', error)
-    showNotification('error', '获取失败', '无法获取会话快照')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.systemActions.notifications.getSnapshotsFailed') : '获取失败', 
+      isI18nReady.value ? t('popup.systemActions.notifications.getSnapshotsFailedMessage') : '无法获取会话快照')
   }
 }
 
@@ -1205,11 +1319,18 @@ async function restoreFromSnapshot(snapshot: any) {
   try {
     await syncManager.restoreSnapshot(snapshot.id)
     showRestoreDialog.value = false
-    showNotification('success', '恢复成功', `已恢复 "${snapshot.name}" 快照`)
+    const successMessage = isI18nReady.value ?
+      t('popup.systemActions.notifications.restoreSuccessMessage').replace('{name}', snapshot.name) :
+      `已恢复 "${snapshot.name}" 快照`
+    showNotification('success', 
+      isI18nReady.value ? t('popup.systemActions.notifications.restoreSuccess') : '恢复成功', 
+      successMessage)
     window.close()
   } catch (error) {
     console.error('Error restoring snapshot:', error)
-    showNotification('error', '恢复失败', '无法恢复会话快照')
+    showNotification('error', 
+      isI18nReady.value ? t('notifications.restoreFailed') : '恢复失败', 
+      isI18nReady.value ? t('notifications.restoreFailedMessage') : '无法恢复会话快照')
   }
 }
 
@@ -1217,14 +1338,14 @@ async function cleanDuplicates() {
   try {
     const duplicates = await duplicateDetector.detectAllDuplicates()
     if (duplicates.length === 0) {
-      showNotification('info', '无需清理', '没有发现重复页面')
+      showNotification('info', t('notifications.noCleanupNeeded'), t('notifications.noCleanupNeededMessage'))
       return
     }
     
     // 显示清理确认对话框
     showDuplicateCleanupDialog(duplicates)
   } catch (error) {
-    showNotification('error', '检测失败', '无法检测重复页面')
+    showNotification('error', t('notifications.detectionFailed'), t('notifications.detectionFailedMessage'))
   }
 }
 
@@ -1259,14 +1380,23 @@ async function confirmCleanDuplicates() {
     duplicateGroups.value = []
     
     if (closedCount > 0) {
-      showNotification('success', '清理完成', `已关闭 ${closedCount} 个重复标签页`)
+      const successMessage = isI18nReady.value ?
+        t('popup.cleanup.notifications.completedMessage').replace('{count}', closedCount.toString()) :
+        `已关闭 ${closedCount} 个重复标签页`
+      showNotification('success', 
+        isI18nReady.value ? t('popup.cleanup.notifications.completed') : '清理完成', 
+        successMessage)
       // 重新加载数据
       await loadData()
     } else {
-      showNotification('info', '无法清理', '没有成功关闭任何标签页')
+      showNotification('info', 
+        isI18nReady.value ? t('popup.cleanup.notifications.nothingClosed') : '无法清理', 
+        isI18nReady.value ? t('popup.cleanup.notifications.nothingClosedMessage') : '没有成功关闭任何标签页')
     }
   } catch (error) {
-    showNotification('error', '清理失败', '清理过程中出现错误')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.cleanup.notifications.failed') : '清理失败', 
+      isI18nReady.value ? t('popup.cleanup.notifications.failedMessage') : '清理过程中出现错误')
   }
 }
 
@@ -1282,7 +1412,13 @@ async function createNewTab() {
     console.log('🚀 Starting createNewTab function')
     
     // 提示用户输入URL
-    const url = prompt('请输入要打开的网址：', 'https://')
+    const promptText = isI18nReady.value ? 
+      t('popup.tabActions.newTabPrompt') : 
+      '请输入要打开的网址：'
+    const defaultUrl = isI18nReady.value ? 
+      t('popup.tabActions.newTabDefault') : 
+      'https://'
+    const url = prompt(promptText, defaultUrl)
     if (!url) {
       console.log('❌ User cancelled URL input')
       return // 用户取消
@@ -1322,7 +1458,9 @@ async function createNewTab() {
       
       // 构建重复页面信息
       const duplicateInfo = duplicates.map(tab => `"${tab.title || tab.url}"`).join('、')
-      const message = `⚠️ 发现重复页面！\n\n重复页面：${duplicateInfo}\n\n❓ 您希望如何处理？\n\n✅ 点击"确定"：仍然打开新标签页\n❌ 点击"取消"：切换到现有页面`
+      const message = isI18nReady.value ? 
+        t('notifications.duplicateDialog').replace('{info}', duplicateInfo) :
+        `⚠️ 发现重复页面！\n\n重复页面：${duplicateInfo}\n\n❓ 您希望如何处理？\n\n✅ 点击"确定"：仍然打开新标签页\n❌ 点击"取消"：切换到现有页面`
       
       console.log('📢 Showing confirmation dialog:', message)
       const shouldCreateNew = confirm(message)
@@ -1334,7 +1472,9 @@ async function createNewTab() {
         if (firstDuplicate.id) {
           console.log('🔀 Switching to existing tab:', firstDuplicate.id)
           await chrome.tabs.update(firstDuplicate.id, { active: true })
-          showNotification('info', '已切换到现有页面', `已切换到现有的标签页：${firstDuplicate.title || firstDuplicate.url}`)
+          showNotification('info', 
+            isI18nReady.value ? t('notifications.switchedToExisting') : '已切换到现有页面', 
+            isI18nReady.value ? t('notifications.switchedToExistingMessage').replace('{title}', firstDuplicate.title || firstDuplicate.url) : `已切换到现有的标签页：${firstDuplicate.title || firstDuplicate.url}`)
           window.close()
           return
         }
@@ -1349,15 +1489,24 @@ async function createNewTab() {
     console.log('✅ New tab created successfully:', newTab)
     
     if (duplicates.length > 0) {
-      showNotification('warning', '已创建重复标签页', `⚠️ 已打开新标签页，但检测到 ${duplicates.length} 个重复页面`)
+      const warningMessage = isI18nReady.value ? 
+        t('popup.tabActions.notifications.duplicateTabWarningMessage').replace('{count}', duplicates.length.toString()) :
+        `⚠️ 已打开新标签页，但检测到 ${duplicates.length} 个重复页面`
+      showNotification('warning', 
+        isI18nReady.value ? t('popup.tabActions.notifications.duplicateTabWarning') : '已创建重复标签页', 
+        warningMessage)
     } else {
-      showNotification('success', '新标签页已创建', '✅ 已成功打开新的标签页')
+      showNotification('success', 
+        isI18nReady.value ? t('popup.tabActions.notifications.newTabCreated') : '新标签页已创建', 
+        isI18nReady.value ? t('popup.tabActions.notifications.newTabCreatedMessage') : '✅ 已成功打开新的标签页')
     }
     
     window.close()
   } catch (error) {
     console.error('❌ Error in createNewTab:', error)
-    showNotification('error', '创建失败', '❌ 无法创建新标签页，请重试')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.tabActions.notifications.createFailed') : '创建失败', 
+      isI18nReady.value ? t('popup.tabActions.notifications.createFailedMessage') : '❌ 无法创建新标签页，请重试')
   }
 }
 
@@ -1385,12 +1534,16 @@ async function duplicateCurrentTab() {
       
       if (duplicates.length > 0) { // 包含当前标签页本身
         const duplicateInfo = duplicates.map(tab => `"${tab.title || tab.url}"`).join('、')
-        const message = `⚠️ 检测到重复页面！\n\n当前页面与以下页面重复：\n${duplicateInfo}\n\n❓ 是否仍要复制当前标签页？\n\n✅ 点击"确定"：复制标签页\n❌ 点击"取消"：不复制`
+        const message = isI18nReady.value ?
+          t('popup.tabActions.duplicateDialog.message').replace('{info}', duplicateInfo) :
+          `⚠️ 检测到重复页面！\n\n当前页面与以下页面重复：\n${duplicateInfo}\n\n❓ 是否仍要复制当前标签页？\n\n✅ 点击"确定"：复制标签页\n❌ 点击"取消"：不复制`
         
         const shouldDuplicate = confirm(message)
         
         if (!shouldDuplicate) {
-          showNotification('info', '操作已取消', '已取消复制重复标签页')
+          showNotification('info', 
+            isI18nReady.value ? t('popup.tabActions.notifications.operationCancelled') : '操作已取消', 
+            isI18nReady.value ? t('popup.tabActions.notifications.operationCancelledMessage') : '已取消复制重复标签页')
           return
         }
       }
@@ -1400,18 +1553,29 @@ async function duplicateCurrentTab() {
       console.log('Tab duplicated:', newTab)
       
       if (duplicates.length > 0) {
-        showNotification('warning', '已创建重复标签页', `⚠️ 已复制标签页，现在共有 ${duplicates.length + 1} 个相同页面`)
+        const warningMessage = isI18nReady.value ?
+          t('popup.tabActions.notifications.duplicateTabCreatedMessage').replace('{count}', (duplicates.length + 1).toString()) :
+          `⚠️ 已复制标签页，现在共有 ${duplicates.length + 1} 个相同页面`
+        showNotification('warning', 
+          isI18nReady.value ? t('popup.tabActions.notifications.duplicateTabCreated') : '已创建重复标签页', 
+          warningMessage)
       } else {
-        showNotification('success', '标签页已复制', '✅ 已成功复制当前标签页')
+        showNotification('success', 
+          isI18nReady.value ? t('popup.tabActions.notifications.tabDuplicated') : '标签页已复制', 
+          isI18nReady.value ? t('popup.tabActions.notifications.tabDuplicatedMessage') : '✅ 已成功复制当前标签页')
       }
       
       window.close()
     } else {
-      showNotification('error', '复制失败', '❌ 无法获取当前标签页信息')
+      showNotification('error', 
+        isI18nReady.value ? t('popup.tabActions.notifications.duplicateFailed') : '复制失败', 
+        isI18nReady.value ? t('popup.tabActions.notifications.duplicateFailedNoTab') : '❌ 无法获取当前标签页信息')
     }
   } catch (error) {
     console.error('Error duplicating tab:', error)
-    showNotification('error', '复制失败', '❌ 无法复制当前标签页，请重试')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.tabActions.notifications.duplicateFailed') : '复制失败', 
+      isI18nReady.value ? t('popup.tabActions.notifications.duplicateFailedMessage') : '❌ 无法复制当前标签页，请重试')
   }
 }
 
@@ -1420,7 +1584,12 @@ async function closeTab(tab: TabInfo) {
     if (tab.id) {
       console.log('🗑️ Closing tab:', tab.title)
       await chrome.tabs.remove(tab.id)
-      showNotification('success', '标签页已关闭', `已关闭 "${truncateText(tab.title, 20)}"`)
+      const successMessage = isI18nReady.value ?
+        t('popup.tabActions.notifications.tabClosedMessage').replace('{title}', truncateText(tab.title, 20)) :
+        `已关闭 "${truncateText(tab.title, 20)}"`
+      showNotification('success', 
+        isI18nReady.value ? t('popup.tabActions.notifications.tabClosed') : '标签页已关闭', 
+        successMessage)
       
       // 手动从本地列表中移除以立即更新UI
       const index = currentTabs.value.findIndex(t => t.id === tab.id)
@@ -1434,7 +1603,9 @@ async function closeTab(tab: TabInfo) {
     }
   } catch (error) {
     console.error('❌ Error closing tab:', error)
-    showNotification('error', '关闭失败', '无法关闭标签页')
+    showNotification('error', 
+      isI18nReady.value ? t('popup.tabActions.notifications.closeFailed') : '关闭失败', 
+      isI18nReady.value ? t('popup.tabActions.notifications.closeFailedMessage') : '无法关闭标签页')
   }
 }
 
@@ -1498,6 +1669,26 @@ function setupLanguageListener() {
     })
   } catch (error) {
     console.log('Chrome runtime not available for language listener')
+  }
+}
+
+function getSortButtonTitle() {
+  try {
+    // 确保tabSortMode有值
+    const sortMode = tabSortMode.value || 'time'
+    
+    // 确保tabSortLabels和相应的属性存在
+    const sortLabels = tabSortLabels.value
+    if (!sortLabels || typeof sortLabels !== 'object') {
+      return '当前排序: 排序'
+    }
+    
+    const currentSortText = isI18nReady.value ? (t('popup.tabs.currentSort') || '当前排序') : '当前排序'
+    const sortLabel = sortLabels[sortMode] || '排序'
+    return `${currentSortText}: ${sortLabel}`
+  } catch (error) {
+    console.error('Error in getSortButtonTitle:', error)
+    return '当前排序: 排序' // 默认标题
   }
 }
 </script>

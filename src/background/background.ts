@@ -2,7 +2,7 @@ import { duplicateDetector } from '@/utils/duplicate-detector'
 import { syncManager } from '@/utils/sync-manager'
 import { workspaceManager } from '@/utils/workspace-manager'
 import { migration } from '@/utils/storage'
-import { useI18n } from '@/utils/i18n'
+import { getTranslation } from '@/utils/i18n'
 import type { TabInfo } from '@/types'
 
 /**
@@ -445,7 +445,8 @@ class BackgroundService {
       console.log('Browser suspending, saving final snapshot...')
       
       // 创建最终快照
-      await syncManager.createSnapshot('auto', '浏览器关闭前保存')
+      const snapshotName = getTranslation('background.closeSnapshot', '浏览器关闭前保存')
+      await syncManager.createSnapshot('auto', snapshotName)
       
       console.log('Final snapshot saved')
     } catch (error) {
