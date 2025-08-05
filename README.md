@@ -13,7 +13,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/smart-tab-manager/smart-tab-manager)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/wxt2rr/smart-tab-manager)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/typescript-5.3.3-blue.svg)](https://www.typescriptlang.org/)
 [![Vue.js](https://img.shields.io/badge/vue.js-3.4.0-4FC08D.svg)](https://vuejs.org/)
@@ -90,7 +90,7 @@
 1. **下载源码**
 
 ```bash
-git clone https://github.com/smart-tab-manager/smart-tab-manager.git
+git clone https://github.com/wxt2rr/smart-tab-manager.git
 cd smart-tab-manager
 ```
 
@@ -192,7 +192,7 @@ smart-tab-manager/
 1. **克隆仓库**
 
 ```bash
-git clone https://github.com/smart-tab-manager/smart-tab-manager.git
+git clone https://github.com/wxt2rr/smart-tab-manager.git
 cd smart-tab-manager
 ```
 
@@ -242,7 +242,7 @@ chore: 构建工具或辅助工具的变动
 
 ### 报告Bug
 
-如果你发现了bug，请创建一个[Issue](https://github.com/smart-tab-manager/smart-tab-manager/issues)并包含：
+如果你发现了bug，请创建一个[Issue](https://github.com/wxt2rr/smart-tab-manager/issues)并包含：
 
 - **问题描述**：清晰描述遇到的问题
 - **重现步骤**：详细的重现步骤
@@ -253,7 +253,7 @@ chore: 构建工具或辅助工具的变动
 
 ### 功能建议
 
-我们也欢迎功能建议！请创建一个[Feature Request](https://github.com/smart-tab-manager/smart-tab-manager/issues/new?template=feature_request.md)并描述：
+我们也欢迎功能建议！请创建一个[Feature Request](https://github.com/wxt2rr/smart-tab-manager/issues/new?template=feature_request.md)并描述：
 
 - **功能描述**：详细描述建议的功能
 - **使用场景**：什么情况下会用到这个功能
@@ -266,8 +266,8 @@ chore: 构建工具或辅助工具的变动
 
 ### 社区
 
-- [GitHub Discussions](https://github.com/smart-tab-manager/smart-tab-manager/discussions) - 讨论和问答
-- [Issues](https://github.com/smart-tab-manager/smart-tab-manager/issues) - Bug报告和功能建议
+- [GitHub Discussions](https://github.com/wxt2rr/smart-tab-manager/discussions) - 讨论和问答
+- [Issues](https://github.com/wxt2rr/smart-tab-manager/issues) - Bug报告和功能建议
 
 ### 相关项目
 

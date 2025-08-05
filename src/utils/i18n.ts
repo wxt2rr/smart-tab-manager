@@ -410,6 +410,57 @@ export const messages = {
       badgeTitle: '检测到重复页面！与 {count} 个页面重复，点击查看选项'
     },
     
+    // 命令面板
+    commandPalette: {
+      placeholder: '搜索或输入命令...',
+      noResults: '未找到匹配的命令',
+      noResultsHint: '尝试使用不同的关键词',
+      categories: {
+        workspace: '工作空间',
+        tab: '标签页',
+        session: '会话',
+        settings: '设置'
+      },
+      commands: {
+        createWorkspace: '创建新工作空间',
+        createWorkspaceDesc: '创建一个新的工作空间来组织标签页',
+        openWorkspace: '打开工作空间',
+        openWorkspaceDesc: '选择并打开一个工作空间',
+        searchTabs: '搜索标签页',
+        searchTabsDesc: '快速搜索和切换到任意标签页',
+        detectDuplicates: '检测重复页面',
+        detectDuplicatesDesc: '扫描并找出重复的标签页',
+        cleanDuplicates: '清理重复页面',
+        cleanDuplicatesDesc: '自动关闭重复的标签页',
+        createSnapshot: '创建快照',
+        createSnapshotDesc: '保存当前浏览器状态的快照',
+        restoreSession: '恢复会话',
+        restoreSessionDesc: '从之前的快照恢复浏览器状态',
+        syncNow: '立即同步',
+        syncNowDesc: '立即创建自动同步快照',
+        openSettings: '打开设置',
+        openSettingsDesc: '配置插件选项和偏好'
+      },
+      dynamic: {
+        openWorkspace: '打开 {name}',
+        switchToTab: '切换到 {title}',
+        restoreSnapshot: '恢复 {name}',
+        tabCount: '{count} 个标签页',
+        pinnedTab: '📌 已固定',
+        secureTab: '🔒 安全连接'
+      },
+      help: {
+        quickActions: '快速操作',
+        navigation: '导航',
+        detectDuplicates: '检测重复页面',
+        createSnapshot: '创建快照',
+        restoreSession: '恢复会话',
+        upDown: '上下选择',
+        execute: '执行命令',
+        close: '关闭面板'
+      }
+    },
+    
     // 后台脚本
     background: {
       closeSnapshot: '浏览器关闭前保存'
@@ -821,6 +872,57 @@ export const messages = {
       closeTab: 'Close and switch',
       background: 'Click background or press ESC to cancel',
       badgeTitle: 'Duplicate page detected! Duplicates with {count} pages, click to view options'
+    },
+    
+    // Command Palette
+    commandPalette: {
+      placeholder: 'Search or enter command...',
+      noResults: 'No matching commands found',
+      noResultsHint: 'Try using different keywords',
+      categories: {
+        workspace: 'Workspaces',
+        tab: 'Tabs',
+        session: 'Sessions',
+        settings: 'Settings'
+      },
+      commands: {
+        createWorkspace: 'Create New Workspace',
+        createWorkspaceDesc: 'Create a new workspace to organize tabs',
+        openWorkspace: 'Open Workspace',
+        openWorkspaceDesc: 'Select and open a workspace',
+        searchTabs: 'Search Tabs',
+        searchTabsDesc: 'Quickly search and switch to any tab',
+        detectDuplicates: 'Detect Duplicates',
+        detectDuplicatesDesc: 'Scan and find duplicate tabs',
+        cleanDuplicates: 'Clean Duplicates',
+        cleanDuplicatesDesc: 'Automatically close duplicate tabs',
+        createSnapshot: 'Create Snapshot',
+        createSnapshotDesc: 'Save a snapshot of the current browser state',
+        restoreSession: 'Restore Session',
+        restoreSessionDesc: 'Restore browser state from a previous snapshot',
+        syncNow: 'Sync Now',
+        syncNowDesc: 'Create an automatic sync snapshot immediately',
+        openSettings: 'Open Settings',
+        openSettingsDesc: 'Configure plugin options and preferences'
+      },
+      dynamic: {
+        openWorkspace: 'Open {name}',
+        switchToTab: 'Switch to {title}',
+        restoreSnapshot: 'Restore {name}',
+        tabCount: '{count} tabs',
+        pinnedTab: '📌 Pinned',
+        secureTab: '🔒 Secure Connection'
+      },
+      help: {
+        quickActions: 'Quick Actions',
+        navigation: 'Navigation',
+        detectDuplicates: 'Detect Duplicates',
+        createSnapshot: 'Create Snapshot',
+        restoreSession: 'Restore Session',
+        upDown: 'Up/Down',
+        execute: 'Execute Command',
+        close: 'Close Panel'
+      }
     },
     
     // Background script

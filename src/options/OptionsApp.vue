@@ -483,7 +483,7 @@
             <div class="about-section">
               <h3>{{ t('options.about.license.title') }}</h3>
               <p>{{ t('options.about.license.description') }}</p>
-              <a href="https://github.com/smart-tab-manager/smart-tab-manager" target="_blank" class="external-link">
+              <a href="https://github.com/wxt2rr/smart-tab-manager" target="_blank" class="external-link">
                 {{ t('options.about.license.viewSource') }}
               </a>
             </div>
@@ -491,7 +491,7 @@
             <div class="about-section">
               <h3>{{ t('options.about.support.title') }}</h3>
               <p>{{ t('options.about.support.description') }}</p>
-              <a href="https://github.com/smart-tab-manager/smart-tab-manager/issues" target="_blank" class="external-link">
+              <a href="https://github.com/wxt2rr/smart-tab-manager/issues" target="_blank" class="external-link">
                 {{ t('options.about.support.reportIssue') }}
               </a>
             </div>

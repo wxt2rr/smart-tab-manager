@@ -107,12 +107,15 @@ export interface Stats {
 
 // 搜索建议
 export interface SearchSuggestion {
+  id: string
   type: 'command' | 'tab' | 'workspace' | 'history'
   title: string
   description?: string
   icon?: string
+  category: string
   action: () => void
   shortcut?: string
+  searchKeywords?: string
 }
 
 // 活动记录

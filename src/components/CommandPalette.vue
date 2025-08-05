@@ -7,7 +7,7 @@
           ref="searchInput"
           v-model="searchQuery"
           type="text"
-          placeholder="搜索或输入命令..."
+          :placeholder="isI18nReady ? t('commandPalette.placeholder') : '搜索或输入命令...'"
           class="search-input"
           @keydown="handleKeydown"
         />
@@ -53,42 +53,42 @@
 
       <div v-else-if="searchQuery && filteredSuggestions.length === 0" class="no-results">
         <FontAwesomeIcon icon="exclamation-circle" class="w-6 h-6 text-gray-400" />
-        <p>未找到匹配的命令</p>
-        <p class="text-sm text-gray-500">尝试使用不同的关键词</p>
+        <p>{{ isI18nReady ? t('commandPalette.noResults') : '未找到匹配的命令' }}</p>
+        <p class="text-sm text-gray-500">{{ isI18nReady ? t('commandPalette.noResultsHint') : '尝试使用不同的关键词' }}</p>
       </div>
 
       <div v-else class="command-help">
         <div class="help-section">
-          <span class="help-category">快速操作</span>
+          <span class="help-category">{{ isI18nReady ? t('commandPalette.help.quickActions') : '快速操作' }}</span>
           <div class="help-items">
             <div class="help-item">
               <kbd>⌘</kbd><kbd>D</kbd>
-              <span>检测重复页面</span>
+              <span>{{ isI18nReady ? t('commandPalette.help.detectDuplicates') : '检测重复页面' }}</span>
             </div>
             <div class="help-item">
               <kbd>⌘</kbd><kbd>S</kbd>
-              <span>创建快照</span>
+              <span>{{ isI18nReady ? t('commandPalette.help.createSnapshot') : '创建快照' }}</span>
             </div>
             <div class="help-item">
               <kbd>⌘</kbd><kbd>R</kbd>
-              <span>恢复会话</span>
+              <span>{{ isI18nReady ? t('commandPalette.help.restoreSession') : '恢复会话' }}</span>
             </div>
           </div>
         </div>
         <div class="help-section">
-          <span class="help-category">导航</span>
+          <span class="help-category">{{ isI18nReady ? t('commandPalette.help.navigation') : '导航' }}</span>
           <div class="help-items">
             <div class="help-item">
               <kbd>↑</kbd><kbd>↓</kbd>
-              <span>上下选择</span>
+              <span>{{ isI18nReady ? t('commandPalette.help.upDown') : '上下选择' }}</span>
             </div>
             <div class="help-item">
               <kbd>Enter</kbd>
-              <span>执行命令</span>
+              <span>{{ isI18nReady ? t('commandPalette.help.execute') : '执行命令' }}</span>
             </div>
             <div class="help-item">
               <kbd>Esc</kbd>
-              <span>关闭面板</span>
+              <span>{{ isI18nReady ? t('commandPalette.help.close') : '关闭面板' }}</span>
             </div>
           </div>
         </div>
@@ -98,13 +98,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { FontAwesomeIcon } from '@/utils/fontawesome'
+import { useI18n } from '@/utils/i18n'
 
 import type { SearchSuggestion } from '@/types'
 import { workspaceManager } from '@/utils/workspace-manager'
 import { syncManager } from '@/utils/sync-manager'
 import { duplicateDetector } from '@/utils/duplicate-detector'
+
+// 多语言支持
+const { t, initLanguage } = useI18n()
+const isI18nReady = ref(false)
 
 // Props & Emits
 const emit = defineEmits<{
@@ -117,131 +122,180 @@ const searchInput = ref<HTMLInputElement>()
 const searchQuery = ref('')
 const activeIndex = ref({ section: 0, item: 0 })
 
-// 建议列表
-const suggestions = ref<SearchSuggestion[]>([
-  // 工作空间相关
-  {
-    id: 'create-workspace',
-    type: 'command',
-    title: '创建新工作空间',
-    description: '创建一个新的工作空间来组织标签页',
-    icon: 'plus',
-    category: 'workspace',
-    action: async () => {
-      const workspace = await workspaceManager.createWorkspace({
-        name: `工作空间 ${workspaceManager.getAllWorkspaces().length + 1}`,
-        icon: '📁',
-        color: '#007AFF',
-        tabs: []
-      })
-      emit('execute', { type: 'workspace-created', data: workspace })
-    }
-  },
-  {
-    id: 'open-workspace',
-    type: 'command',
-    title: '打开工作空间',
-    description: '选择并打开一个工作空间',
-    icon: 'folder',
-    category: 'workspace',
-    action: () => {
-      // 显示工作空间选择器
-      emit('execute', { type: 'show-workspace-selector' })
-    }
-  },
-  
-  // 标签页相关
-  {
-    id: 'detect-duplicates',
-    type: 'command',
-    title: '检测重复页面',
-    description: '扫描并找出重复的标签页',
-    icon: 'copy',
-    category: 'tab',
-    shortcut: '⌘D',
-    action: async () => {
-      const duplicates = await duplicateDetector.detectAllDuplicates()
-      emit('execute', { type: 'duplicates-detected', data: duplicates })
-    }
-  },
-  {
-    id: 'clean-duplicates',
-    type: 'command',
-    title: '清理重复页面',
-    description: '自动关闭重复的标签页',
-    icon: 'trash',
-    category: 'tab',
-    action: async () => {
-      const duplicates = await duplicateDetector.detectAllDuplicates()
-      emit('execute', { type: 'clean-duplicates', data: duplicates })
-    }
-  },
-  
-  // 会话相关
-  {
-    id: 'create-snapshot',
-    type: 'command',
-    title: '创建快照',
-    description: '保存当前浏览器状态的快照',
-    icon: 'camera',
-    category: 'session',
-    shortcut: '⌘S',
-    action: async () => {
-      const snapshot = await syncManager.createSnapshot('manual')
-      emit('execute', { type: 'snapshot-created', data: snapshot })
-    }
-  },
-  {
-    id: 'restore-session',
-    type: 'command',
-    title: '恢复会话',
-    description: '从之前的快照恢复浏览器状态',
-    icon: 'sync',
-    category: 'session',
-    shortcut: '⌘R',
-    action: () => {
-      emit('execute', { type: 'show-restore-dialog' })
-    }
-  },
-  {
-    id: 'sync-now',
-    type: 'command',
-    title: '立即同步',
-    description: '立即创建自动同步快照',
-    icon: 'cloud-upload-alt',
-    category: 'session',
-    action: async () => {
-      const snapshot = await syncManager.createSnapshot('auto')
-      emit('execute', { type: 'sync-completed', data: snapshot })
-    }
-  },
-  
-  // 设置相关
-  {
-    id: 'open-settings',
-    type: 'command',
-    title: '打开设置',
-    description: '配置插件选项和偏好',
-    icon: 'cog',
-    category: 'settings',
-    action: () => {
-      chrome.runtime.openOptionsPage()
-      emit('execute', { type: 'settings-opened' })
-    }
+// 监听搜索查询变化，实时重新加载标签页建议
+watch(searchQuery, async (newQuery, oldQuery) => {
+  // 如果搜索查询长度大于等于2，重新加载动态建议以获取更多匹配的标签页
+  if (newQuery.length >= 2 && newQuery !== oldQuery) {
+    await loadDynamicSuggestions()
   }
-])
+}, { debounce: 300 }) // 防抖300ms避免过于频繁的更新
+
+// 建议列表
+const suggestions = computed(() => {
+  if (!isI18nReady.value) return [] // 等待i18n初始化
+  
+  return [
+    // 工作空间相关
+    {
+      id: 'create-workspace',
+      type: 'command',
+      title: t('commandPalette.commands.createWorkspace'),
+      description: t('commandPalette.commands.createWorkspaceDesc'),
+      icon: 'plus',
+      category: 'workspace',
+      action: async () => {
+        const workspaceCount = workspaceManager.getAllWorkspaces().length + 1
+        const workspace = await workspaceManager.createWorkspace({
+          name: `${isI18nReady.value ? t('popup.workspaces.newWorkspace') : '工作空间'} ${workspaceCount}`,
+          icon: '📁',
+          color: '#007AFF',
+          tabs: []
+        })
+        emit('execute', { type: 'workspace-created', data: workspace })
+      }
+    },
+    {
+      id: 'open-workspace',
+      type: 'command',
+      title: t('commandPalette.commands.openWorkspace'),
+      description: t('commandPalette.commands.openWorkspaceDesc'),
+      icon: 'folder',
+      category: 'workspace',
+      action: () => {
+        // 显示工作空间选择器
+        emit('execute', { type: 'show-workspace-selector' })
+      }
+    },
+    
+    // 标签页相关
+    {
+      id: 'search-tabs',
+      type: 'command',
+      title: t('commandPalette.commands.searchTabs'),
+      description: t('commandPalette.commands.searchTabsDesc'),
+      icon: 'search',
+      category: 'tab',
+      action: () => {
+        // 清空搜索并聚焦，提示用户开始搜索标签页
+        searchQuery.value = ''
+        searchInput.value?.focus()
+        emit('execute', { type: 'search-tabs-mode' })
+      }
+    },
+    {
+      id: 'detect-duplicates',
+      type: 'command',
+      title: t('commandPalette.commands.detectDuplicates'),
+      description: t('commandPalette.commands.detectDuplicatesDesc'),
+      icon: 'copy',
+      category: 'tab',
+      shortcut: '⌘D',
+      action: async () => {
+        const duplicates = await duplicateDetector.detectAllDuplicates()
+        emit('execute', { type: 'duplicates-detected', data: duplicates })
+      }
+    },
+    {
+      id: 'clean-duplicates',
+      type: 'command',
+      title: t('commandPalette.commands.cleanDuplicates'),
+      description: t('commandPalette.commands.cleanDuplicatesDesc'),
+      icon: 'trash',
+      category: 'tab',
+      action: async () => {
+        const duplicates = await duplicateDetector.detectAllDuplicates()
+        emit('execute', { type: 'clean-duplicates', data: duplicates })
+      }
+    },
+    
+    // 会话相关
+    {
+      id: 'create-snapshot',
+      type: 'command',
+      title: t('commandPalette.commands.createSnapshot'),
+      description: t('commandPalette.commands.createSnapshotDesc'),
+      icon: 'camera',
+      category: 'session',
+      shortcut: '⌘S',
+      action: async () => {
+        const snapshot = await syncManager.createSnapshot('manual')
+        emit('execute', { type: 'snapshot-created', data: snapshot })
+      }
+    },
+    {
+      id: 'restore-session',
+      type: 'command',
+      title: t('commandPalette.commands.restoreSession'),
+      description: t('commandPalette.commands.restoreSessionDesc'),
+      icon: 'sync',
+      category: 'session',
+      shortcut: '⌘R',
+      action: () => {
+        emit('execute', { type: 'show-restore-dialog' })
+      }
+    },
+    {
+      id: 'sync-now',
+      type: 'command',
+      title: t('commandPalette.commands.syncNow'),
+      description: t('commandPalette.commands.syncNowDesc'),
+      icon: 'cloud-upload-alt',
+      category: 'session',
+      action: async () => {
+        const snapshot = await syncManager.createSnapshot('auto')
+        emit('execute', { type: 'sync-completed', data: snapshot })
+      }
+    },
+    
+    // 设置相关
+    {
+      id: 'open-settings',
+      type: 'command',
+      title: t('commandPalette.commands.openSettings'),
+      description: t('commandPalette.commands.openSettingsDesc'),
+      icon: 'cog',
+      category: 'settings',
+      action: () => {
+        chrome.runtime.openOptionsPage()
+        emit('execute', { type: 'settings-opened' })
+      }
+    }
+  ]
+})
+
+// 动态建议列表
+const dynamicSuggestions = ref<SearchSuggestion[]>([])
 
 // 计算属性
+const allSuggestions = computed(() => {
+  return [...suggestions.value, ...dynamicSuggestions.value]
+})
+
 const filteredSuggestions = computed(() => {
   if (!searchQuery.value) {
-    return suggestions.value
+    return allSuggestions.value
   }
   
   const query = searchQuery.value.toLowerCase()
-  return suggestions.value.filter(suggestion =>
-    suggestion.title.toLowerCase().includes(query) ||
-    suggestion.description?.toLowerCase().includes(query)
-  )
+  return allSuggestions.value.filter(suggestion => {
+    // 基础匹配：标题和描述
+    const titleMatch = suggestion.title.toLowerCase().includes(query)
+    const descriptionMatch = suggestion.description?.toLowerCase().includes(query)
+    
+    // 增强匹配：搜索关键词（包含URL、域名等）
+    const keywordsMatch = suggestion.searchKeywords?.toLowerCase().includes(query)
+    
+    // 模糊匹配：支持部分关键词匹配
+    const fuzzyMatch = query.split(' ').some(word => 
+      word.length > 2 && (
+        suggestion.title.toLowerCase().includes(word) ||
+        suggestion.description?.toLowerCase().includes(word) ||
+        suggestion.searchKeywords?.toLowerCase().includes(word)
+      )
+    )
+    
+    return titleMatch || descriptionMatch || keywordsMatch || fuzzyMatch
+  })
 })
 
 const groupedSuggestions = computed(() => {
@@ -255,10 +309,22 @@ const groupedSuggestions = computed(() => {
   }, {} as Record<string, SearchSuggestion[]>)
 
   const categoryInfo = {
-    workspace: { title: '工作空间', icon: 'folder' },
-    tab: { title: '标签页', icon: 'copy' },
-    session: { title: '会话', icon: 'camera' },
-    settings: { title: '设置', icon: 'cog' }
+    workspace: { 
+      title: isI18nReady.value ? t('commandPalette.categories.workspace') : '工作空间', 
+      icon: 'folder' 
+    },
+    tab: { 
+      title: isI18nReady.value ? t('commandPalette.categories.tab') : '标签页', 
+      icon: 'copy' 
+    },
+    session: { 
+      title: isI18nReady.value ? t('commandPalette.categories.session') : '会话', 
+      icon: 'camera' 
+    },
+    settings: { 
+      title: isI18nReady.value ? t('commandPalette.categories.settings') : '设置', 
+      icon: 'cog' 
+    }
   }
 
   return Object.entries(groups).map(([category, items], sectionIndex) => ({
@@ -272,6 +338,10 @@ const groupedSuggestions = computed(() => {
 
 // 组件挂载
 onMounted(async () => {
+  // 初始化多语言
+  await initLanguage()
+  isI18nReady.value = true
+  
   await nextTick()
   searchInput.value?.focus()
   
@@ -281,16 +351,20 @@ onMounted(async () => {
 
 // 加载动态建议
 async function loadDynamicSuggestions() {
+  if (!isI18nReady.value) return
+  
   try {
+    const newSuggestions: SearchSuggestion[] = []
+    
     // 加载工作空间建议
     const workspaces = workspaceManager.getAllWorkspaces()
     workspaces.forEach(workspace => {
-      suggestions.value.push({
+      newSuggestions.push({
         id: `open-workspace-${workspace.id}`,
         type: 'workspace',
-        title: `打开 ${workspace.name}`,
-        description: `${workspace.tabs.length} 个标签页`,
-        icon: FolderIcon,
+        title: t('commandPalette.dynamic.openWorkspace').replace('{name}', workspace.name),
+        description: t('commandPalette.dynamic.tabCount').replace('{count}', workspace.tabs.length.toString()),
+        icon: 'folder',
         category: 'workspace',
         action: async () => {
           await workspaceManager.openWorkspace(workspace.id)
@@ -299,34 +373,75 @@ async function loadDynamicSuggestions() {
       })
     })
 
-    // 加载最近标签页建议
+    // 加载所有标签页建议（增强版）
     const tabs = await chrome.tabs.query({})
-    tabs.slice(0, 5).forEach(tab => {
+    const currentTab = await chrome.tabs.query({ active: true, currentWindow: true })
+    const currentTabId = currentTab[0]?.id
+    
+    // 按活跃度和相关性排序标签页
+    const sortedTabs = tabs
+      .filter(tab => tab.url && tab.title && tab.id !== currentTabId) // 排除当前标签页
+      .sort((a, b) => {
+        // 优先显示最近活跃的标签页
+        if (a.active && !b.active) return -1
+        if (!a.active && b.active) return 1
+        // 然后按照固定状态排序
+        if (a.pinned && !b.pinned) return -1
+        if (!a.pinned && b.pinned) return 1
+        // 最后按照ID排序（近似按打开时间）
+        return (b.id || 0) - (a.id || 0)
+      })
+    
+    // 加载更多标签页建议（最多20个，或根据搜索查询动态调整）
+    const maxTabs = searchQuery.value ? 50 : 15 // 搜索时显示更多结果
+    sortedTabs.slice(0, maxTabs).forEach(tab => {
       if (tab.url && tab.title) {
-        suggestions.value.push({
-          id: `switch-to-tab-${tab.id}`,
-          type: 'tab',
-          title: `切换到 ${tab.title}`,
-          description: new URL(tab.url).hostname,
-          icon: DocumentDuplicateIcon,
-          category: 'tab',
-          action: async () => {
-            await chrome.tabs.update(tab.id!, { active: true })
-            emit('execute', { type: 'tab-switched', data: tab })
+        try {
+          const url = new URL(tab.url)
+          const domain = url.hostname
+          
+          // 增强的描述信息
+          let description = domain
+          if (tab.pinned) {
+            description = `📌 ${description}`
           }
-        })
+          if (tab.url.startsWith('https://')) {
+            description = `🔒 ${description}`
+          }
+          
+          newSuggestions.push({
+            id: `switch-to-tab-${tab.id}`,
+            type: 'tab',
+            title: t('commandPalette.dynamic.switchToTab').replace('{title}', tab.title),
+            description: description,
+            icon: 'copy',
+            category: 'tab',
+            // 添加搜索关键词以提高搜索匹配度
+            searchKeywords: [tab.title, domain, tab.url].join(' '),
+            action: async () => {
+              await chrome.tabs.update(tab.id!, { active: true })
+              // 如果标签页在另一个窗口，也切换到该窗口
+              if (tab.windowId) {
+                await chrome.windows.update(tab.windowId, { focused: true })
+              }
+              emit('execute', { type: 'tab-switched', data: tab })
+            }
+          })
+        } catch (error) {
+          console.error('Error processing tab URL:', tab.url, error)
+        }
       }
     })
 
     // 加载历史快照建议
     const snapshots = await syncManager.getSnapshotList()
     snapshots.slice(0, 3).forEach(snapshot => {
-      suggestions.value.push({
+      newSuggestions.push({
         id: `restore-snapshot-${snapshot.id}`,
         type: 'history',
-        title: `恢复 ${snapshot.name}`,
-        description: `${snapshot.metadata?.totalTabs} 个标签页`,
-        icon: ArrowPathIcon,
+        title: t('commandPalette.dynamic.restoreSnapshot').replace('{name}', snapshot.name),
+        description: t('commandPalette.dynamic.tabCount').replace('{count}', snapshot.metadata?.totalTabs?.toString() || '0'),
+        icon: 'sync',
         category: 'session',
         action: async () => {
           await syncManager.restoreSnapshot(snapshot.id)
@@ -334,6 +449,8 @@ async function loadDynamicSuggestions() {
         }
       })
     })
+    
+    dynamicSuggestions.value = newSuggestions
   } catch (error) {
     console.error('Error loading dynamic suggestions:', error)
   }

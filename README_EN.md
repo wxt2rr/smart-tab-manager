@@ -13,7 +13,7 @@
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/smart-tab-manager/smart-tab-manager)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/wxt2rr/smart-tab-manager)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/typescript-5.3.3-blue.svg)](https://www.typescriptlang.org/)
 [![Vue.js](https://img.shields.io/badge/vue.js-3.4.0-4FC08D.svg)](https://vuejs.org/)
@@ -89,7 +89,7 @@
 1. **Download Source Code**
 
 ```bash
-git clone https://github.com/smart-tab-manager/smart-tab-manager.git
+git clone https://github.com/wxt2rr/smart-tab-manager.git
 cd smart-tab-manager
 ```
 
@@ -191,7 +191,7 @@ smart-tab-manager/
 1. **Clone Repository**
 
 ```bash
-git clone https://github.com/smart-tab-manager/smart-tab-manager.git
+git clone https://github.com/wxt2rr/smart-tab-manager.git
 cd smart-tab-manager
 ```
 
@@ -251,7 +251,7 @@ chore: build tools or auxiliary tools changes
 
 ### Bug Reports
 
-If you find a bug, please create an [Issue](https://github.com/smart-tab-manager/smart-tab-manager/issues) and include:
+If you find a bug, please create an [Issue](https://github.com/wxt2rr/smart-tab-manager/issues) and include:
 
 - **Problem Description**: Clear description of the issue encountered
 - **Reproduction Steps**: Detailed steps to reproduce
@@ -262,7 +262,7 @@ If you find a bug, please create an [Issue](https://github.com/smart-tab-manager
 
 ### Feature Requests
 
-We also welcome feature suggestions! Please create a [Feature Request](https://github.com/smart-tab-manager/smart-tab-manager/issues/new?template=feature_request.md) and describe:
+We also welcome feature suggestions! Please create a [Feature Request](https://github.com/wxt2rr/smart-tab-manager/issues/new?template=feature_request.md) and describe:
 
 - **Feature Description**: Detailed description of the suggested feature
 - **Use Case**: When would this feature be used
@@ -275,8 +275,8 @@ We also welcome feature suggestions! Please create a [Feature Request](https://g
 
 ### Community
 
-- [GitHub Discussions](https://github.com/smart-tab-manager/smart-tab-manager/discussions) - Discussions and Q&A
-- [Issues](https://github.com/smart-tab-manager/smart-tab-manager/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/wxt2rr/smart-tab-manager/discussions) - Discussions and Q&A
+- [Issues](https://github.com/wxt2rr/smart-tab-manager/issues) - Bug reports and feature requests
 
 ### Related Projects
 
