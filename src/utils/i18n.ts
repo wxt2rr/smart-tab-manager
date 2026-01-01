@@ -26,7 +26,7 @@ export const messages = {
       title: 'Smart Tab Manager',
       search: {
         placeholder: '搜索或输入命令...',
-        shortcut: '⌘K'
+        shortcut: '⇧⌘K'
       },
       overview: {
         title: '概览',
@@ -490,7 +490,7 @@ export const messages = {
       title: 'Smart Tab Manager',
       search: {
         placeholder: 'Search or enter command...',
-        shortcut: '⌘K'
+        shortcut: '⇧⌘K'
       },
       overview: {
         title: 'Overview',

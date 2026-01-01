@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Smart Tab Manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "🚀 Intelligent tab management with Apple-inspired design - duplicate detection, workspace organization, and session recovery",
   
   "permissions": [
@@ -10,14 +10,8 @@
     "activeTab",
     "contextMenus",
     "background",
-    "system.display",
     "notifications",
     "scripting"
-  ],
-  
-  "optional_permissions": [
-    "bookmarks",
-    "history"
   ],
   
   "background": {
@@ -56,29 +50,29 @@
   "commands": {
     "open-command-palette": {
       "suggested_key": {
-        "default": "Ctrl+K",
-        "mac": "Command+K"
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
       },
       "description": "Open command palette"
     },
     "duplicate-detection": {
       "suggested_key": {
-        "default": "Ctrl+D",
-        "mac": "Command+D"
+        "default": "Ctrl+Shift+D",
+        "mac": "Alt+Shift+D"
       },
       "description": "Run duplicate detection"
     },
     "create-snapshot": {
       "suggested_key": {
-        "default": "Ctrl+S",
-        "mac": "Command+S"
+        "default": "Ctrl+Shift+S",
+        "mac": "Alt+Shift+S"
       },
       "description": "Create session snapshot"
     },
     "restore-session": {
       "suggested_key": {
-        "default": "Ctrl+R",
-        "mac": "Command+R"
+        "default": "Ctrl+Shift+R",
+        "mac": "Alt+Shift+R"
       },
       "description": "Restore last session"
     }

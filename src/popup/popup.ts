@@ -11,14 +11,11 @@ app.mount('#app')
 
 // 处理快捷键
 document.addEventListener('keydown', (event) => {
-  // ⌘K / Ctrl+K 打开命令面板
-  if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+  if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'k') {
     event.preventDefault()
-    // 触发命令面板事件
     window.dispatchEvent(new CustomEvent('open-command-palette'))
   }
-  
-  // ESC 关闭弹窗
+
   if (event.key === 'Escape') {
     window.close()
   }

@@ -472,21 +472,21 @@ class BackgroundService {
         chrome.contextMenus.create({
           id: 'add-to-workspace',
           title: await getTranslation('popup.workspaces.addToWorkspace', '添加到工作空间'),
-          contexts: ['page', 'tab']
+          contexts: ['page', 'action']
         })
 
         // 检测重复页面菜单
         chrome.contextMenus.create({
           id: 'detect-duplicates',
           title: await getTranslation('popup.systemActions.cleanup', '检测重复页面'),
-          contexts: ['page', 'tab']
+          contexts: ['page', 'action']
         })
 
         // 创建快照菜单
         chrome.contextMenus.create({
           id: 'create-snapshot',
           title: await getTranslation('popup.systemActions.snapshot', '创建会话快照'),
-          contexts: ['page', 'tab']
+          contexts: ['page', 'action']
         })
 
         // 监听菜单点击
@@ -1175,7 +1175,21 @@ class BackgroundService {
 
   // 命令处理方法
   private async openCommandPalette(): Promise<void> {
-    // 实现打开命令面板的逻辑
+    try {
+      await chrome.storage.session.set({
+        stm_pending_open_command_palette: true
+      })
+    } catch {
+      // ignore
+    }
+
+    try {
+      await chrome.action.openPopup()
+      return
+    } catch {
+      // ignore
+    }
+
     this.broadcastMessage({ type: 'open-command-palette' })
   }
 

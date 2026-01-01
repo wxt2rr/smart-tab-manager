@@ -750,6 +750,16 @@ onMounted(async () => {
   
   // 首先设置事件监听器
   setupEventListeners()
+
+  try {
+    const result = await chrome.storage.session.get('stm_pending_open_command_palette')
+    if (result?.stm_pending_open_command_palette) {
+      await chrome.storage.session.remove('stm_pending_open_command_palette')
+      showCommandPalette.value = true
+    }
+  } catch {
+    // ignore
+  }
   
   // 监听语言变化消息
   setupLanguageListener()
